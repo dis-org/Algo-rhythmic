@@ -39,7 +39,7 @@ void print_array(int* array,int len)
 void sort_until_k(int* array,int len, int k)
 {
   swap(&array[linear_search(array,len,k)], array);
-  partition(array,len);
-  quick_sort(array, k);
+  int p= partition(array,len);
+  quick_sort(array, p);
   return;
 }
