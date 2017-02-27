@@ -1,4 +1,4 @@
 CC= gcc
 CFLAGS= -std=c99 -Wall -g
-mainexec: test.c alg.c
-	$(CC) $(CFLAGS) -o Test test.c alg.c
+mainexec: esami.c fuffa.c test.c
+	$(CC) $(CFLAGS) -o Alga esami.c fuffa.c test.c

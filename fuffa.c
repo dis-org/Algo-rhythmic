@@ -21,7 +21,7 @@ void insertion_sort(int* array, int len)
       int temp= array[i];
       j= i;
       while(j-->0 && array[j]>temp)
-  array[j+1]=array[j];
+	array[j+1]=array[j];
       array[j+1]=temp;
     }
   
@@ -34,7 +34,7 @@ int partition(int* array, int len)
   int k= 0;
   for(int i= 1; i<len; i++)
     if(array[i]<=array[0])
-	swap(&array[i],&array[++k]);
+      swap(&array[i],&array[++k]);
   swap(array,&array[k]);
   return k;
 }

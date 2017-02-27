@@ -1,22 +1,21 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "./alg.h"
-
+#include "esami.h"
 #define N 10
 
 void print_array(int*, int);
-void sort_until_k(int*, int, int);
 
 int main(int argc, char* argv[])
 {
+  int k= 0;
   if(argc<2)
     {
       puts("inserire numero");
-      return 1;
+      scanf("%d",&k);
     }
-  
-  int k= atoi(argv[1]);
-  
+  else
+    k= atoi(argv[1]);
+
   int array[N]= {3,4,2,5,9,7,0,6,8,1};
 
   print_array(array, N);
@@ -36,10 +35,3 @@ void print_array(int* array,int len)
   return;
 }
 
-void sort_until_k(int* array,int len, int k)
-{
-  swap(&array[linear_search(array,len,k)], array);
-  int p= partition(array,len);
-  quick_sort(array, p);
-  return;
-}
