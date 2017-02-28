@@ -1,4 +1,14 @@
 #include <stdlib.h>
+#include<stdio.h>
+
+void print_array(int* array,int len)
+{
+  for(int i=0; i<len; i++)
+    printf("%d ",array[i]);
+  puts("");
+  return;
+}
+
 
 void swap(int* a, int* b)
 {
@@ -53,7 +63,7 @@ void insertion_sort(int* array, int len)
 	array[j+1]=array[j];
       array[j+1]=temp;
     }
-  
+
   return;
 }
 
@@ -65,7 +75,7 @@ void quick_sort(int* array, int len)
       if(len>2)
 	{
 	  quick_sort(array, q);
-	  quick_sort(&array[q+1],len-q-1);	  
+	  quick_sort(&array[q+1],len-q-1);
 	}
     }
   return;
@@ -82,4 +92,26 @@ void merge_sort(int* array, int len)
       free(left); free(right);
     }
   return;
+}
+
+void counting_sort(int* array, int len, int max)
+{
+  int erval= max+1;                             //sono una persona brutta
+  int* ermediate= malloc(erval*sizeof(erval));  //peggioro
+  for(int i=0; i<len; i++)                      //conta le occorrenze di ogni elemento nell'array
+  {
+    ermediate[array[i]]++;
+  }
+  for(int i=1; i<erval; i++)                    //incrementa tutte le celle dell'array del valore contenuto nella precedente
+  {
+    ermediate[i]+= ermediate[i-1];
+  }
+  int* sorted= malloc(len*sizeof(len));
+  for(int i=len-1; i>=0; i--)                   //mette gli elementi giusti al posto giusto
+  {
+    sorted[ermediate[array[i]]-1]= array[i];
+    --ermediate[array[i]];
+  }
+  print_array(sorted, 6);                       //qual è il problema con cloneArray()?
+  array= clone_array(sorted, len);
 }
