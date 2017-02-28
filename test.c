@@ -1,28 +1,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "esami.h"
-#define N 10
+#include "fuffa.h"
 
 void print_array(int*, int);
 
 int main(int argc, char* argv[])
 {
-  int k= 0;
-  if(argc<2)
-    {
-      puts("inserire numero");
-      scanf("%d",&k);
-    }
-  else
-    k= atoi(argv[1]);
-
-  int array[N]= {3,4,2,5,9,7,0,6,8,1};
-
-  print_array(array, N);
+  int array[8]= {9,6,5,3,2,4,6,1};
   
-  sort_until_k(array, N, k);
+  print_array(array, 8);
+
+  merge_sort(array, 8);
   
-  print_array(array, N);
+  print_array(array, 8);
   
   return 0;
 }
