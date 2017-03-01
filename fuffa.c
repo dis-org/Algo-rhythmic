@@ -98,20 +98,21 @@ void counting_sort(int* array, int len, int max)
 {
   int erval= max+1;                             //sono una persona brutta
   int* ermediate= malloc(erval*sizeof(erval));  //peggioro
-  for(int i=0; i<len; i++)                      //conta le occorrenze di ogni elemento nell'array
-  {
+  
+  //conta le occorrenze di ogni elemento nell'array
+  for(int i=0; i<len; i++)                      
     ermediate[array[i]]++;
-  }
-  for(int i=1; i<erval; i++)                    //incrementa tutte le celle dell'array del valore contenuto nella precedente
-  {
+
+  //incrementa tutte le celle dell'array del valore contenuto nella precedente
+  for(int i=1; i<erval; i++)
     ermediate[i]+= ermediate[i-1];
-  }
-  int* sorted= malloc(len*sizeof(len));
+
+  int* copy= clone_array(array,len);
   for(int i=len-1; i>=0; i--)                   //mette gli elementi giusti al posto giusto
   {
-    sorted[ermediate[array[i]]-1]= array[i];
-    --ermediate[array[i]];
+    array[ermediate[copy[i]]-1]= copy[i];
+    --ermediate[copy[i]];
   }
-  print_array(sorted, 6);                       //qual è il problema con cloneArray()?
-  array= clone_array(sorted, len);
+  free(copy); free(ermediate);
+  return;
 }
