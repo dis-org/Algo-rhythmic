@@ -96,23 +96,58 @@ void merge_sort(int* array, int len)
 
 void counting_sort(int* array, int len, int max)
 {
-  int erval= max+1;                             //sono una persona brutta
-  int* ermediate= malloc(erval*sizeof(erval));  //peggioro
-  
-  //conta le occorrenze di ogni elemento nell'array
-  for(int i=0; i<len; i++)                      
+  int erval= max+1;
+  int* ermediate= malloc(erval*sizeof(erval));
+
+  for(int i=0; i<len; i++)
     ermediate[array[i]]++;
 
-  //incrementa tutte le celle dell'array del valore contenuto nella precedente
   for(int i=1; i<erval; i++)
     ermediate[i]+= ermediate[i-1];
 
   int* copy= clone_array(array,len);
-  for(int i=len-1; i>=0; i--)                   //mette gli elementi giusti al posto giusto
+
+  for(int i=len-1; i>=0; i--)
   {
     array[ermediate[copy[i]]-1]= copy[i];
     --ermediate[copy[i]];
   }
   free(copy); free(ermediate);
   return;
+}
+
+/*HEAP*/
+
+int parent(int i)
+{
+  return i/2;
+}
+
+int leftchild(int i)
+{
+  return 2*i+1;
+}
+
+int rightchild(int i)
+{
+  return 2*i+2;
+}
+
+void maxHeapfy(int* array, int len, int i)
+{
+  int l= leftchild(i);
+  int r= rightchild(i);
+  int largest= i;
+  if(l<=len && array[l]>array[i]) largest= l;
+  if(r<=len && array[r]>array[i] && array[r]>array[l]) largest= r;
+  if(largest!=i)
+  {
+    swap(&array[i], &array[largest]);
+    maxHeapfy(array, len, largest);
+  }
+}
+
+void buildMaxHeap(int* array, int len)
+{
+  for(int i=len/2-1; i>=0; i--) maxHeapfy(array, len, i);
 }
