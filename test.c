@@ -7,13 +7,13 @@ void print_array(int*, int);
 
 int main(int argc, char* argv[])
 {
-  int array[6]= {2, 6, 6, 5, 4, 5};
+  int array[15]= {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
 
-  print_array(array, 6);
+  print_array(array, 15);
 
-  counting_sort(array, 6, 6);
+  buildMaxHeap(array, 15);
 
-  print_array(array, 6);
+  print_array(array, 15);
 
   return 0;
 }
