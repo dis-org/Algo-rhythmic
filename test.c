@@ -3,17 +3,20 @@
 #include "esami.h"
 #include "fuffa.h"
 
-void print_array(int*, int);
-
 int main(int argc, char* argv[])
 {
-  int array[15]= {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
 
-  print_array(array, 15);
+  int len= argc -1;
+  int array[len];
 
-  buildMaxHeap(array, 15);
+  for(int i= 0; i<len; i++)
+    array[i]= atoi(argv[i+1]);
+  
+  print_array(array, len);
 
-  print_array(array, 15);
+  build_maxHeap(array, len);
 
+  print_maxHeap(array, len);
+  
   return 0;
 }
