@@ -19,7 +19,7 @@ void print_maxHeap(int* array, int len)
       int dim= int_log(10,array[0]);
       int indx= 0;
       int nums= 1;
-      
+
       for(int i= 0; i< rows; i++)
 	{
 	  int spc= 1;
@@ -43,7 +43,7 @@ void print_maxHeap(int* array, int len)
 	  puts("");
 	  nums*=2;
 	}
-      
+
     }
   return;
 }
@@ -109,6 +109,24 @@ int linear_search(int* array, int len, int k)
   return -1;
 }
 
+int binary_search(int* array, int len, int k)       //iterativo perché sì
+{
+  int min= 0;
+  int max= len-1;
+  int mid= (max+min)/2;
+  while (min<=max) {
+    if(array[mid]==k) return mid;
+    else
+    {
+      if(k<mid) max= mid-1;
+      else min= mid+1;
+      mid= (max+min)/2;
+    }
+  }
+  return -1;
+}
+
+/*ORDINAMENTO*/
 void insertion_sort(int* array, int len)
 {
   int j= 0;
@@ -171,6 +189,16 @@ void counting_sort(int* array, int len, int max)
   }
   free(copy); free(ermediate);
   return;
+}
+
+void heap_sort(int* array, int len)
+{
+  build_maxHeap(array, len);
+  for(int i=len-1; i>0; i--)
+  {
+    swap(&array[0], &array[i]);
+    maxHeapfy(array, i, 0);
+  }
 }
 
 /*HEAP*/
