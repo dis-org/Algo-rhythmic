@@ -1,6 +1,8 @@
+#include <stdio.h>
 #include <stdlib.h>
-#include<stdio.h>
+#include "fuffa.h"
 
+/*OUTPUT*/
 void print_array(int* array,int len)
 {
   for(int i=0; i<len; i++)
@@ -9,13 +11,67 @@ void print_array(int* array,int len)
   return;
 }
 
+void print_maxHeap(int* array, int len)
+{
+  if(len>0)
+    {
+      int rows= lg(len);
+      int dim= int_log(10,array[0]);
+      int indx= 0;
+      int nums= 1;
+      
+      for(int i= 0; i< rows; i++)
+	{
+	  int spc= 1;
+	  for(int j= 1; j< rows-i;j++)
+	    spc*=2;
 
+	  for(int f= 0; f< nums; f++)
+	    {
+	      for(int k= 0; k< dim*(spc-1); k++)
+		printf(" ");
+	      if(indx<len)
+		{
+		  int dam= dim -int_log(10,array[indx]);
+		  for(int s= 0; s< dam; s++)
+		    printf(" ");
+		  printf("%d",array[indx++]);
+		}
+	      for(int k= 0; k< dim*(spc); k++)
+		printf(" ");
+	    }
+	  puts("");
+	  nums*=2;
+	}
+      
+    }
+  return;
+}
+
+/*VARIE*/
 void swap(int* a, int* b)
 {
   int temp= *a;
   *a= *b;
   *b= temp;
   return;
+}
+
+int int_log(int base, int n)
+{
+  int ret= 0;
+  while(n>0)
+    {
+      n/=base;
+      ret++;
+    }
+  return ret;
+}
+
+
+int lg(int n)
+{
+  return int_log(2,n);
 }
 
 int partition(int* array, int len)
@@ -45,6 +101,7 @@ void merge(int* left, int* right, int len_l, int len_r, int* array)
   return;
 }
 
+/*RICERCA*/
 int linear_search(int* array, int len, int k)
 {
   for(int i= 0; i<len;i++)
@@ -138,8 +195,8 @@ void maxHeapfy(int* array, int len, int i)
   int l= leftchild(i);
   int r= rightchild(i);
   int largest= i;
-  if(l<=len && array[l]>array[i]) largest= l;
-  if(r<=len && array[r]>array[i] && array[r]>array[l]) largest= r;
+  if(l<len && array[l]>array[i]) largest= l;
+  if(r<len && array[r]>array[i] && array[r]>array[l]) largest= r;
   if(largest!=i)
   {
     swap(&array[i], &array[largest]);
@@ -147,7 +204,8 @@ void maxHeapfy(int* array, int len, int i)
   }
 }
 
-void buildMaxHeap(int* array, int len)
+void build_maxHeap(int* array, int len)
 {
   for(int i=len/2-1; i>=0; i--) maxHeapfy(array, len, i);
+  return;
 }
