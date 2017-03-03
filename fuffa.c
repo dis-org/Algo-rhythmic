@@ -3,6 +3,7 @@
 #include "fuffa.h"
 
 /*OUTPUT*/
+
 void print_array(int* array,int len)
 {
   for(int i=0; i<len; i++)
@@ -19,13 +20,11 @@ void print_maxHeap(int* array, int len)
       int dim= int_log(10,array[0]);
       int indx= 0;
       int nums= 1;
-
       for(int i= 0; i< rows; i++)
 	{
 	  int spc= 1;
 	  for(int j= 1; j< rows-i;j++)
 	    spc*=2;
-
 	  for(int f= 0; f< nums; f++)
 	    {
 	      for(int k= 0; k< dim*(spc-1); k++)
@@ -43,12 +42,12 @@ void print_maxHeap(int* array, int len)
 	  puts("");
 	  nums*=2;
 	}
-
     }
   return;
 }
 
 /*VARIE*/
+
 void swap(int* a, int* b)
 {
   int temp= *a;
@@ -67,7 +66,6 @@ int int_log(int base, int n)
     }
   return ret;
 }
-
 
 int lg(int n)
 {
@@ -102,6 +100,7 @@ void merge(int* left, int* right, int len_l, int len_r, int* array)
 }
 
 /*RICERCA*/
+
 int linear_search(int* array, int len, int k)
 {
   for(int i= 0; i<len;i++)
@@ -109,24 +108,27 @@ int linear_search(int* array, int len, int k)
   return -1;
 }
 
-int binary_search(int* array, int len, int k)       //iterativo perché sì
+int binary_search(int* array, int len, int k)
 {
-  int min= 0;
-  int max= len-1;
-  int mid= (max+min)/2;
-  while (min<=max) {
-    if(array[mid]==k) return mid;
-    else
+  int str= 0;
+  int end= len-1;
+  int mid;
+  int piv;
+  while(str<=end)
     {
-      if(k<mid) max= mid-1;
-      else min= mid+1;
-      mid= (max+min)/2;
+      mid= (end+str)/2;
+      piv= array[mid];
+      if(piv<k)
+	str= mid+1;
+      else if(piv>k)
+	end= mid-1;
+      else return mid;
     }
-  }
   return -1;
 }
 
 /*ORDINAMENTO*/
+
 void insertion_sort(int* array, int len)
 {
   int j= 0;
@@ -138,7 +140,6 @@ void insertion_sort(int* array, int len)
 	array[j+1]=array[j];
       array[j+1]=temp;
     }
-
   return;
 }
 
@@ -173,15 +174,11 @@ void counting_sort(int* array, int len, int max)
 {
   int erval= max+1;
   int* ermediate= malloc(erval*sizeof(erval));
-
   for(int i=0; i<len; i++)
     ermediate[array[i]]++;
-
   for(int i=1; i<erval; i++)
     ermediate[i]+= ermediate[i-1];
-
   int* copy= clone_array(array,len);
-
   for(int i=len-1; i>=0; i--)
   {
     array[ermediate[copy[i]]-1]= copy[i];

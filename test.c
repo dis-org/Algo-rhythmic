@@ -12,20 +12,15 @@ int main(int argc, char* argv[])
   for(int i= 0; i<len; i++)
     array[i]= atoi(argv[i+1]);
 
-  print_array(array, len);
+  heap_sort(array,len-1);
 
-  build_maxHeap(array, len);
+  print_array(array, len-1);
+  printf("obj: %d\n",array[len-1]);
+  
+  int lin= linear_search(array, len-1, array[len-1]);
+  int bin= binary_search(array, len-1, array[len-1]);
 
-  print_maxHeap(array, len);
-
-  heap_sort(array, len);
-
-  print_array(array, len);
-
-  int k= 4;
-  int found= binary_search(array, len, k);
-
-  printf("%d\n", found);
+  printf("lin: %d\nbin: %d\n",lin,bin);
 
   return 0;
 }

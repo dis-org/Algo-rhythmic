@@ -12,7 +12,7 @@ void merge(int* left, int* right, int len_l,int len_r,int* array); // O(n)
 
 /*RICERCA*/
 int linear_search(int* array, int len, int k);     // O(n)
-int binary_search(int* array, int len, int k);     // O(logn) ITERATIVO E' MEGLIO
+int binary_search(int* array, int len, int k);     // O(logn)
 
 /*ORDINAMENTO*/
 void insertion_sort(int* array, int len);          // O(n^2) - in place
