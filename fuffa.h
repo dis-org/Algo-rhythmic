@@ -1,6 +1,4 @@
-/*OUTPUT*/
-void print_array(int* array, int len);
-void print_maxHeap(int* array, int len);
+#include "distruct.h"
 
 /*VARIE*/
 void swap(int* a, int* b);                         // O(1)
@@ -28,3 +26,14 @@ int leftchild(int i);                              // O(1)
 int rightchild(int i);                             // O(1)
 void maxHeapfy(int* array, int len, int i);        // O(logn)
 void build_maxHeap(int* array, int len);           // O(n)
+
+/*UNION-FIND*/
+Set_t* make_Set(Set_t* New, char e);               // O(1)
+Set_t* union_Set(Set_t* A, Set_t* B);              // O(n)
+Set_t* find_Set(Set_t* Sets, int len, char e);     // O(n)
+
+/*OUTPUT*/
+void print_array(int* array, int len);
+void print_maxHeap(int* array, int len);
+void print_Sets(Set_t* Sets, int len);
+void print_Set(Set_t*);

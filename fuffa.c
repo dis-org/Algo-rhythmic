@@ -2,50 +2,6 @@
 #include <stdlib.h>
 #include "fuffa.h"
 
-/*OUTPUT*/
-
-void print_array(int* array,int len)
-{
-  for(int i=0; i<len; i++)
-    printf("%d ",array[i]);
-  puts("");
-  return;
-}
-
-void print_maxHeap(int* array, int len)
-{
-  if(len>0)
-    {
-      int rows= lg(len);
-      int dim= int_log(10,array[0]);
-      int indx= 0;
-      int nums= 1;
-      for(int i= 0; i< rows; i++)
-	{
-	  int spc= 1;
-	  for(int j= 1; j< rows-i;j++)
-	    spc*=2;
-	  for(int f= 0; f< nums; f++)
-	    {
-	      for(int k= 0; k< dim*(spc-1); k++)
-		printf(" ");
-	      if(indx<len)
-		{
-		  int dam= dim -int_log(10,array[indx]);
-		  for(int s= 0; s< dam; s++)
-		    printf(" ");
-		  printf("%d",array[indx++]);
-		}
-	      for(int k= 0; k< dim*(spc); k++)
-		printf(" ");
-	    }
-	  puts("");
-	  nums*=2;
-	}
-    }
-  return;
-}
-
 /*VARIE*/
 
 void swap(int* a, int* b)
@@ -234,3 +190,140 @@ void build_maxHeap(int* array, int len)
   for(int i=len/2-1; i>=0; i--) maxHeapfy(array, len, i);
   return;
 }
+
+/*UNION-FIND*/
+
+Set_t* make_Set(Set_t* New, char e)
+{
+  New->size= 1;
+  New->tag= e;
+  Let_t* Er= malloc(sizeof(Let_t));
+  Er->name= e;
+  New->Head= Er;
+  New->Tail= Er;
+  Er->Head= Er;
+  Er->Next= Er;
+  return New;
+}
+
+Set_t* union_Set(Set_t* A, Set_t* B)
+{
+  if(A==B)
+    return A;
+  Let_t* Tmp;
+  if(A->size >= B->size)
+    {
+      Tmp= B->Head;
+      for(int i= 0; i< B->size; i++)
+	{
+	  Tmp->Head= A->Head;
+	  Tmp= Tmp->Next;
+	}
+      B->Tail->Next= A->Head;
+      A->Tail->Next= B->Head;
+      A->Tail= B->Tail;
+      A->size += B->size;
+      B->size= 0;
+      return A;
+    }
+  else
+    {
+      Tmp= A->Head;
+      for(int i= 0; i< A->size; i++)
+	{
+	  Tmp->Head= B->Head;
+	  Tmp= Tmp->Next;
+	}
+      B->Tail->Next= A->Head;
+      A->Tail->Next= B->Head;
+      B->Tail= A->Tail;
+      B->size += A->size;
+      A->size= 0;
+      return B;
+    }
+}
+
+Set_t* find_Set(Set_t* Sets, int len, char e)
+{
+  Let_t* Tmp;
+  for(int i= 0; i<len; i++)
+    {
+      Tmp= Sets[i].Head;
+      for(int j= 0; j< Sets[i].size; j++)
+	{
+	  if(Tmp->name== e) return &Sets[i];
+	  Tmp=Tmp->Next;
+	}
+      }
+  return 0;
+}
+  
+/*OUTPUT*/
+
+void print_array(int* array,int len)
+{
+  for(int i=0; i<len; i++)
+    printf("%d ",array[i]);
+  puts("");
+  return;
+}
+
+void print_maxHeap(int* array, int len)
+{
+  if(len>0)
+    {
+      int rows= lg(len);
+      int dim= int_log(10,array[0]);
+      int indx= 0;
+      int nums= 1;
+      for(int i= 0; i< rows; i++)
+	{
+	  int spc= 1;
+	  for(int j= 1; j< rows-i;j++)
+	    spc*=2;
+	  for(int f= 0; f< nums; f++)
+	    {
+	      for(int k= 0; k< dim*(spc-1); k++)
+		printf(" ");
+	      if(indx<len)
+		{
+		  int dam= dim -int_log(10,array[indx]);
+		  for(int s= 0; s< dam; s++)
+		    printf(" ");
+		  printf("%d",array[indx++]);
+		}
+	      for(int k= 0; k< dim*(spc); k++)
+		printf(" ");
+	    }
+	  puts("");
+	  nums*=2;
+	}
+    }
+  return;
+}
+
+void print_Sets(Set_t* Sets, int len)
+{
+  Set_t Tmp;
+  Let_t* Er;
+  for(int i= 0; i<len; i++)
+    {
+      Tmp= Sets[i];
+      printf("Set '%c' (%d): ", Tmp.tag, Tmp.size);
+      Er= Tmp.Head;
+      for(int j= 0; j< Tmp.size; j++)
+	{
+	  printf("%c ",Er->name);
+	  Er= Er->Next;
+	}
+      puts("");
+    }
+  return;
+}
+
+void print_Set(Set_t* A)
+{
+  print_Sets(A,1);
+  return;
+}
+

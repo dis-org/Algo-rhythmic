@@ -5,22 +5,81 @@
 
 int main(int argc, char* argv[])
 {
-
   int len= argc -1;
-  int array[len];
+  char array[len];
+  Set_t Sets[len];
+
 
   for(int i= 0; i<len; i++)
-    array[i]= atoi(argv[i+1]);
+    {
+      array[i]= argv[i+1][0];
+      make_Set(&Sets[i],array[i]);
+    }
 
-  heap_sort(array,len-1);
+  char input[100];
+  int state= 0;
+  char* c;
+  Set_t* A;
+  Set_t* B;
 
-  print_array(array, len-1);
-  printf("obj: %d\n",array[len-1]);
-  
-  int lin= linear_search(array, len-1, array[len-1]);
-  int bin= binary_search(array, len-1, array[len-1]);
-
-  printf("lin: %d\nbin: %d\n",lin,bin);
-
+  while(1)
+    {
+      scanf("%s",input);
+      c= input;
+      state= 0;
+      
+      while(*c!='\0')
+	{
+	  switch(state)
+	    {
+	    case 0: //cerco A
+	      switch(*c)
+		{
+		case'+':
+		  break;
+		default:
+		  A= find_Set(Sets,len,*c);
+		  if(A)
+		    {
+		      print_Set(A);
+		      state= 1;
+		    }
+		  else state= -1;
+		}
+	      break;
+	    case 1: // cerco un simbolo
+	      switch(*c)
+		{
+		case'+':
+		  state= 2;
+		}
+	      break;
+	    case 2:// cerco B e unisco
+	      switch(*c)
+		{
+		case'+':
+		  break;
+		default:
+		  B= find_Set(Sets,len,*c);
+		  if(B)
+		    {
+		      print_Set(B);
+		      A= union_Set(A,B);
+		      print_Set(A);		      
+		      state= 1;
+		    }
+		}
+	      break;
+	    default: //errore brutto
+	      return 404;
+	    }
+	  if(state==-1)
+	    {
+	      puts("elemento non presente");
+	      return 0;
+	    }	    
+	  c++;
+	}
+    }  
   return 0;
 }
