@@ -35,6 +35,8 @@ int main(int argc, char* argv[])
 	    case 0: //cerco A
 	      switch(*c)
 		{
+		case'#':
+		  print_Sets(Sets,len);
 		case'+':
 		  break;
 		default:
@@ -68,6 +70,7 @@ int main(int argc, char* argv[])
 		      print_Set(A);		      
 		      state= 1;
 		    }
+		  else state=-1;
 		}
 	      break;
 	    default: //errore brutto
@@ -75,7 +78,7 @@ int main(int argc, char* argv[])
 	    }
 	  if(state==-1)
 	    {
-	      puts("elemento non presente");
+	      printf("%c missing, exit\n",*c);
 	      return 0;
 	    }	    
 	  c++;
