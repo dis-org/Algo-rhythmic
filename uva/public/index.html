@@ -3,14 +3,14 @@
 <style>
 
 circle {
-  fill: #b9a;;
+  fill: #b9a;
   stroke: #939;
   stroke-width: 5px;
 }
 
-path {
+.viticcio{
   stroke: #050;
-  stroke-width: 8px;
+  stroke-width: 4px;
 }
 
 </style>
@@ -23,27 +23,26 @@ var width = innerWidth,
     x= 1;
     y= 1;
 
-var grappolo= [
-[0,1,0,1,1,0,0,0,1,0,1,0],
-[0,0,0,0,0,0,1,0,0,0,1,0],
-[0,1,0,0,0,0,0,0,0,0,0,0],
-[1,1,0,0,1,0,0,0,0,0,0,0],
-[1,0,0,1,0,0,0,0,0,0,0,0],
-[0,1,1,1,1,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0,0,0,1,0],
-[0,0,0,0,0,0,1,0,0,0,1,0],
-[0,0,0,0,0,0,1,0,0,0,1,0],
-[0,0,0,0,0,0,1,0,0,0,1,0],
-[0,0,0,0,0,0,1,0,0,0,0,0],
-[0,0,0,0,0,0,0,0,0,0,1,0]
-];
+var enne= 30;
+
+var grappolo= new Array(enne);
+
+for(var i= 0; i<enne; i++){
+  grappolo[i]= new Array(enne);
+  for(var j= 0; j<enne; j++){
+    if(i!==j && Math.random()*100>95)
+      grappolo[i][j]= 1;
+    else
+      grappolo[i][j]= 0;
+  }
+}
 
 var acini=[];
 
 var viticci=[];
 
 grappolo.forEach(function(acino,i,grappolo){
-  acini.push({"key":i});
+  acini.push({"id":i});
 });
 
 grappolo.forEach(function(acino,i,grappolo){
@@ -57,7 +56,7 @@ var force = d3.layout.force()
   .nodes(d3.values(acini))
   .links(viticci)
   .size([width, height])
-  .linkDistance(60)
+  .linkDistance(30)
   .charge(-300)
   .on("tick", tock)
   .start();
@@ -66,15 +65,33 @@ var svg = d3.select("body").append("svg")
     .attr("width", width)
     .attr("height", height);
 
+svg.append("defs").selectAll("marker")
+    .data(["punta"])
+  .enter().append("marker")
+    .attr("id", function(d) { return d; })
+    .attr("viewBox", "0 -5 10 10")
+    .attr("refX", 15)
+    .attr("refY", -1.5)
+    .attr("markerWidth", 5)
+    .attr("markerHeight", 5)
+    .attr("orient", "auto")
+  .append("path")
+    .attr("d", "M0,-5L10,0L0,5")
+    .attr("fill","#050");
+
 var path= svg.append("g").selectAll("path")
   .data(force.links()).enter()
     .append("path")
+    .attr("class","viticcio")
+    .attr("id",function(d){return"("+d.source.id+","+d.target.id+")"})
+    .attr("marker-end","url(#punta)")
+    .attr("fill","none")
 
 var circle= svg.append("g").selectAll("circle")
   .data(force.nodes()).enter()
     .append("circle")
     .attr("r", 30)
-    .attr("id",function(d){return d;})
+    .attr("id",function(d){return d.id;})
     .call(force.drag);
 
 function tock() {
@@ -82,15 +99,35 @@ function tock() {
   circle.attr("transform", transform);
 }
 
+var line= d3.svg.line()
+  .x(function(d){return d.x;})
+  .y(function(d){return d.y;})
+  .interpolate("bundle");
+
 function linkArc(d) {
   var dx = d.target.x - d.source.x,
       dy = d.target.y - d.source.y,
-      dr = 0;
+      dr = Math.sqrt(dx * dx + dy * dy);
   return "M" + d.source.x + "," + d.source.y + "A" + dr + "," + dr + " 0 0,1 " + d.target.x + "," + d.target.y;
 }
 
 function transform(d) {
   return "translate(" + d.x + "," + d.y + ")";
+}
+
+var grosso= true;
+
+onkeydown= function(e){
+  if(grosso){ 
+  circle.attr("r",15);
+  force.linkDistance(100).charge(-500).start()
+  grosso= false;
+  }
+  else{
+  circle.attr("r",30);
+  force.linkDistance(20).charge(-200).start()
+  grosso= true; 
+  }
 }
 
 </script>
