@@ -23,26 +23,35 @@ var width = innerWidth,
     x= 1;
     y= 1;
 
-var Adj= [
-[0,0,1,0],
-[0,0,0,0],
-[0,1,0,0],
-[1,0,0,0]
+var grappolo= [
+[0,1,0,1,1,0,0,0,1,0,1,0],
+[0,0,0,0,0,0,1,0,0,0,1,0],
+[0,1,0,0,0,0,0,0,0,0,0,0],
+[1,1,0,0,1,0,0,0,0,0,0,0],
+[1,0,0,1,0,0,0,0,0,0,0,0],
+[0,1,1,1,1,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,1,0],
+[0,0,0,0,0,0,1,0,0,0,1,0],
+[0,0,0,0,0,0,1,0,0,0,1,0],
+[0,0,0,0,0,0,1,0,0,0,1,0],
+[0,0,0,0,0,0,1,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,1,0]
 ];
 
-var acini=[
-  {"name":'1'},
-  {"name":'2'},
-  {"name":'3'},
-  {"name":'4'}
-  ];
+var acini=[];
 
-var viticci=[
-  {"source": acini[0], "target": acini[1]},
-  {"source": acini[1], "target": acini[2]},
-  {"source": acini[1], "target": acini[3]},
-  {"source": acini[2], "target": acini[0]}
-];
+var viticci=[];
+
+grappolo.forEach(function(acino,i,grappolo){
+  acini.push({"key":i});
+});
+
+grappolo.forEach(function(acino,i,grappolo){
+  acino.forEach(function(viticcio,j,acino){
+    if(viticcio==1)
+      viticci.push({"source":acini[i],"target":acini[j]});
+  });
+});
 
 var force = d3.layout.force()
   .nodes(d3.values(acini))
