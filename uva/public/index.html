@@ -3,8 +3,6 @@
 <style>
 
 circle {
-  fill: #b9a;
-  stroke: #939;
   stroke-width: 5px;
 }
 
@@ -42,15 +40,32 @@ var acini=[];
 var viticci=[];
 
 grappolo.forEach(function(acino,i,grappolo){
-  acini.push({"id":i});
+  acini.push(
+    {
+      "id":i,
+      "stato":"acerba"
+      }
+    );
 });
 
 grappolo.forEach(function(acino,i,grappolo){
   acino.forEach(function(viticcio,j,acino){
     if(viticcio==1)
-      viticci.push({"source":acini[i],"target":acini[j]});
+      viticci.push(
+        {
+          "source":acini[i],
+          "target":acini[j]
+         }
+      );
   });
 });
+
+var matura = "#b9a",
+    buccia_matura= "#939",
+    acerba = "#ad9",
+    buccia_acerba = '#595',
+    buccia_passa = "#213",
+    passa = "#525"
 
 var force = d3.layout.force()
   .nodes(d3.values(acini))
@@ -80,19 +95,44 @@ svg.append("defs").selectAll("marker")
     .attr("fill","#050");
 
 var path= svg.append("g").selectAll("path")
-  .data(force.links()).enter()
+  .data(viticci).enter()
     .append("path")
     .attr("class","viticcio")
     .attr("id",function(d){return"("+d.source.id+","+d.target.id+")"})
     .attr("marker-end","url(#punta)")
-    .attr("fill","none")
+    .attr("class","viticcio")
+    .attr("fill","none");
 
 var circle= svg.append("g").selectAll("circle")
-  .data(force.nodes()).enter()
+  .data(acini).enter()
     .append("circle")
     .attr("r", 30)
+    .attr("onclick",'invecchia(this)')
     .attr("id",function(d){return d.id;})
+    .attr("fill",acerba)
+    .attr("stroke",buccia_acerba)
     .call(force.drag);
+
+function inacerbisci(e){
+  d3.select(e)
+  .attr("fill",acerba)
+  .attr("stroke",buccia_acerba)
+}
+
+function invecchia(e){
+  if(acini[e.id].stato=="acerba"){
+    d3.select(e)
+    .attr("stroke",buccia_matura)
+    .attr("fill",matura)
+    acini[e.id].stato="matura";
+  }
+  else if(acini[e.id].stato=="matura"){
+    d3.select(e)
+    .attr("fill",passa)
+    .attr("stroke",buccia_passa)
+    acini[e.id].stato= "passa";
+  }
+}
 
 function tock() {
   path.attr("d", linkArc);
@@ -118,6 +158,7 @@ function transform(d) {
 var grosso= true;
 
 onkeydown= function(e){
+
   if(grosso){ 
   circle.attr("r",15);
   force.linkDistance(100).charge(-500).start()
@@ -128,6 +169,11 @@ onkeydown= function(e){
   force.linkDistance(20).charge(-200).start()
   grosso= true; 
   }
+}
+
+function inacerbizza(){
+  acini.forEach(function(e){e.stato="acerba"})
+  circle[0].forEach(function(e){inacerbisci(e)})
 }
 
 </script>
