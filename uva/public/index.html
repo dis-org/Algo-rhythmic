@@ -1,8 +1,180 @@
-<html>
-    <head>
-        <title>Mysite</title>
-    </head>
-    <body>
-       Hello World!
-    </body>
-</html>
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+circle {
+  stroke-width: 5px;
+}
+
+.viticcio{
+  stroke: #050;
+  stroke-width: 4px;
+}
+
+</style>
+<body>
+<script src="//d3js.org/d3.v3.min.js"></script>
+<script>
+
+var width = innerWidth,
+    height = innerHeight;
+    x= 1;
+    y= 1;
+
+var enne= 30;
+
+var grappolo= new Array(enne);
+
+for(var i= 0; i<enne; i++){
+  grappolo[i]= new Array(enne);
+  for(var j= 0; j<enne; j++){
+    if(i!==j && Math.random()*100>95)
+      grappolo[i][j]= 1;
+    else
+      grappolo[i][j]= 0;
+  }
+}
+
+var acini=[];
+
+var viticci=[];
+
+grappolo.forEach(function(acino,i,grappolo){
+  acini.push(
+    {
+      "id":i,
+      "stato":"acerba"
+      }
+    );
+});
+
+grappolo.forEach(function(acino,i,grappolo){
+  acino.forEach(function(viticcio,j,acino){
+    if(viticcio==1)
+      viticci.push(
+        {
+          "source":acini[i],
+          "target":acini[j]
+         }
+      );
+  });
+});
+
+var matura = "#b9a",
+    buccia_matura= "#939",
+    acerba = "#ad9",
+    buccia_acerba = '#595',
+    buccia_passa = "#213",
+    passa = "#525"
+
+var force = d3.layout.force()
+  .nodes(d3.values(acini))
+  .links(viticci)
+  .size([width, height])
+  .linkDistance(30)
+  .charge(-300)
+  .on("tick", tock)
+  .start();
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+svg.append("defs").selectAll("marker")
+    .data(["punta"])
+  .enter().append("marker")
+    .attr("id", function(d) { return d; })
+    .attr("viewBox", "0 -5 10 10")
+    .attr("refX", 15)
+    .attr("refY", -1.5)
+    .attr("markerWidth", 5)
+    .attr("markerHeight", 5)
+    .attr("orient", "auto")
+  .append("path")
+    .attr("d", "M0,-5L10,0L0,5")
+    .attr("fill","#050");
+
+var path= svg.append("g").selectAll("path")
+  .data(viticci).enter()
+    .append("path")
+    .attr("class","viticcio")
+    .attr("id",function(d){return"("+d.source.id+","+d.target.id+")"})
+    .attr("marker-end","url(#punta)")
+    .attr("class","viticcio")
+    .attr("fill","none");
+
+var circle= svg.append("g").selectAll("circle")
+  .data(acini).enter()
+    .append("circle")
+    .attr("r", 30)
+    .attr("onclick",'invecchia(this)')
+    .attr("id",function(d){return d.id;})
+    .attr("fill",acerba)
+    .attr("stroke",buccia_acerba)
+    .call(force.drag);
+
+function inacerbisci(e){
+  d3.select(e)
+  .attr("fill",acerba)
+  .attr("stroke",buccia_acerba)
+}
+
+function invecchia(e){
+  if(acini[e.id].stato=="acerba"){
+    d3.select(e)
+    .attr("stroke",buccia_matura)
+    .attr("fill",matura)
+    acini[e.id].stato="matura";
+  }
+  else if(acini[e.id].stato=="matura"){
+    d3.select(e)
+    .attr("fill",passa)
+    .attr("stroke",buccia_passa)
+    acini[e.id].stato= "passa";
+  }
+}
+
+function tock() {
+  path.attr("d", linkArc);
+  circle.attr("transform", transform);
+}
+
+var line= d3.svg.line()
+  .x(function(d){return d.x;})
+  .y(function(d){return d.y;})
+  .interpolate("bundle");
+
+function linkArc(d) {
+  var dx = d.target.x - d.source.x,
+      dy = d.target.y - d.source.y,
+      dr = Math.sqrt(dx * dx + dy * dy);
+  return "M" + d.source.x + "," + d.source.y + "A" + dr + "," + dr + " 0 0,1 " + d.target.x + "," + d.target.y;
+}
+
+function transform(d) {
+  return "translate(" + d.x + "," + d.y + ")";
+}
+
+var grosso= true;
+
+onkeydown= function(e){
+
+  if(grosso){ 
+  circle.attr("r",15);
+  force.linkDistance(100).charge(-500).start()
+  grosso= false;
+  }
+  else{
+  circle.attr("r",30);
+  force.linkDistance(20).charge(-200).start()
+  grosso= true; 
+  }
+}
+
+function inacerbizza(){
+  acini.forEach(function(e){e.stato="acerba"})
+  circle[0].forEach(function(e){inacerbisci(e)})
+}
+
+</script>
+</body>
