@@ -14,21 +14,22 @@ circle {
 </style>
 <body>
 <script src="//d3js.org/d3.v3.min.js"></script>
+<script src="grappolib.js"></script>
 <script>
 
-var width = innerWidth,
-    height = innerHeight;
+var width = innerWidth*.98;
+    height = innerHeight*.97;
     x= 1;
     y= 1;
 
-var enne= 30;
+var enne= 50;
 
 var grappolo= new Array(enne);
 
 for(var i= 0; i<enne; i++){
   grappolo[i]= new Array(enne);
   for(var j= 0; j<enne; j++){
-    if(i!==j && Math.random()*100>95)
+    if(i!==j && Math.random()*100>97)
       grappolo[i][j]= 1;
     else
       grappolo[i][j]= 0;
@@ -43,7 +44,10 @@ grappolo.forEach(function(acino,i,grappolo){
   acini.push(
     {
       "id":i,
-      "stato":"acerba"
+      "uva":"acerba",
+      "padre":null,
+      "d":0,
+      "f":0
       }
     );
 });
@@ -64,8 +68,8 @@ var matura = "#b9a",
     buccia_matura= "#939",
     acerba = "#ad9",
     buccia_acerba = '#595',
-    buccia_passa = "#213",
-    passa = "#525"
+    passa = "#525",
+    buccia_passa = "#213";
 
 var force = d3.layout.force()
   .nodes(d3.values(acini))
@@ -107,7 +111,7 @@ var circle= svg.append("g").selectAll("circle")
   .data(acini).enter()
     .append("circle")
     .attr("r", 30)
-    .attr("onclick",'invecchia(this)')
+    .attr("onclick",'alert(JSON.stringify(this))')
     .attr("id",function(d){return d.id;})
     .attr("fill",acerba)
     .attr("stroke",buccia_acerba)
@@ -120,17 +124,18 @@ function inacerbisci(e){
 }
 
 function invecchia(e){
-  if(acini[e.id].stato=="acerba"){
+  T++;
+  if(acini[e.id].uva=="acerba"){
     d3.select(e)
     .attr("stroke",buccia_matura)
     .attr("fill",matura)
-    acini[e.id].stato="matura";
+    acini[e.id].uva="matura";
   }
-  else if(acini[e.id].stato=="matura"){
+  else if(acini[e.id].uva=="matura"){
     d3.select(e)
     .attr("fill",passa)
     .attr("stroke",buccia_passa)
-    acini[e.id].stato= "passa";
+    acini[e.id].uva= "passa";
   }
 }
 
@@ -156,9 +161,42 @@ function transform(d) {
 }
 
 var grosso= true;
+var T;
 
 onkeydown= function(e){
+    var code = e.keyCode ? e.keyCode : e.which;
 
+    switch(code){
+    case 32: accresci(); break;
+    case 13: DFS(); break;
+  }
+}
+
+function DFS(){
+  inacerbizza();
+  grappolo.forEach(function(acino,i,grappolo) {
+    if(acini[i].uva=='acerba'){
+      invecchia(circle[0][1])
+      DFS_visit(i)
+    }
+  })
+}
+
+function DFS_visit(i){
+  invecchia(circle[0][i])
+  acini[i].d= T;
+  grappolo[i].forEach(function(viticcio,j,acino) {
+    if(viticcio!= 0 && acini[j].uva=='acerba')
+    {
+      acini[j].padre= i;
+      DFS_visit(j)
+    }
+  })
+  invecchia(circle[0][i])
+  acini[i].f= T;
+}
+
+function accresci(){
   if(grosso){ 
   circle.attr("r",15);
   force.linkDistance(100).charge(-500).start()
@@ -172,7 +210,8 @@ onkeydown= function(e){
 }
 
 function inacerbizza(){
-  acini.forEach(function(e){e.stato="acerba"})
+  T=0;
+  acini.forEach(function(e){e.uva="acerba", e.padre=null, e.d=0, e.f=0})
   circle[0].forEach(function(e){inacerbisci(e)})
 }
 
