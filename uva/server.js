@@ -1,11 +1,14 @@
 var http = require("http");
 var connect = require('connect');
+var serve_favicon = require('serve-favicon');
 var serve_static= require('serve-static');
+var path = require('path');
 
 console.log('\n\n--- Node Version: ' + process.version + ' ---');
 
 // Set up Connect routing
 var app = connect()
+    .use(serve_favicon(path.join(__dirname,'public','grappolo.ico')))
     .use(serve_static(__dirname + '/public'))
     .use(function(req, res) {
         console.log('Could not find handler for: ' + req.url);

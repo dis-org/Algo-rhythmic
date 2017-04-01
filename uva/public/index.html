@@ -14,7 +14,6 @@ circle {
 </style>
 <body>
 <script src="//d3js.org/d3.v3.min.js"></script>
-<script src="grappolib.js"></script>
 <script>
 
 var width = innerWidth*.98;
@@ -111,7 +110,7 @@ var circle= svg.append("g").selectAll("circle")
   .data(acini).enter()
     .append("circle")
     .attr("r", 30)
-    .attr("onclick",'alert(JSON.stringify(this))')
+    .attr("onclick",'invecchia(this)')
     .attr("id",function(d){return d.id;})
     .attr("fill",acerba)
     .attr("stroke",buccia_acerba)
@@ -169,6 +168,11 @@ onkeydown= function(e){
     switch(code){
     case 32: accresci(); break;
     case 13: DFS(); break;
+    case 8: inacerbizza(); break;
+    default: alert("codice tasto premuto: "+code+"\n\
+                    spazio:\t\t\tespande-comprime\n\
+                    invio:\t\t\tDFS\n\
+                    backspace:\t\t\treset");
   }
 }
 
