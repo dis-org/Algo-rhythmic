@@ -2,25 +2,50 @@
 <meta charset="utf-8">
 <style>
 
-circle {
+.uva_acerba {
   stroke-width: 5px;
+  fill: #ad9;
+  stroke: #595;
 }
 
-.viticcio{
+.uva_matura {
+  stroke-width: 5px;
+  fill: #b9a;
+  stroke: #939;
+}
+
+.uva_passa {
+  stroke-width: 5px;
+  fill: #525;
+  stroke: #213;
+}
+
+.viticcio {
+  fill: none;
   stroke: #050;
   stroke-width: 4px;
+}
+
+#punta {
+  fill: #050;
+}
+
+.viticcio_to {
+  fill: none;
+  stroke: #0f0;
+  stroke-width: 4px;
+}
+
+#punta_to {
+  fill: #0f0;
 }
 
 </style>
 <body>
 <script src="//d3js.org/d3.v3.min.js"></script>
-<script src="grappolib.js"></script>
 <script>
 
-var width = innerWidth*.98;
-    height = innerHeight*.97;
-    x= 1;
-    y= 1;
+//Generazione del grappolo
 
 var enne= 50;
 
@@ -29,7 +54,7 @@ var grappolo= new Array(enne);
 for(var i= 0; i<enne; i++){
   grappolo[i]= new Array(enne);
   for(var j= 0; j<enne; j++){
-    if(i!==j && Math.random()*100>97)
+    if(i!==j && Math.random()*100>98)
       grappolo[i][j]= 1;
     else
       grappolo[i][j]= 0;
@@ -64,19 +89,19 @@ grappolo.forEach(function(acino,i,grappolo){
   });
 });
 
-var matura = "#b9a",
-    buccia_matura= "#939",
-    acerba = "#ad9",
-    buccia_acerba = '#595',
-    passa = "#525",
-    buccia_passa = "#213";
+//Magia
+
+var width = innerWidth*.98;
+    height = innerHeight*.97;
+    x= 1;
+    y= 1;
 
 var force = d3.layout.force()
   .nodes(d3.values(acini))
   .links(viticci)
   .size([width, height])
-  .linkDistance(30)
-  .charge(-300)
+  .linkDistance(10)
+  .charge(-100)
   .on("tick", tock)
   .start();
 
@@ -85,7 +110,7 @@ var svg = d3.select("body").append("svg")
     .attr("height", height);
 
 svg.append("defs").selectAll("marker")
-    .data(["punta"])
+    .data(["punta","punta_to"])
   .enter().append("marker")
     .attr("id", function(d) { return d; })
     .attr("viewBox", "0 -5 10 10")
@@ -96,7 +121,6 @@ svg.append("defs").selectAll("marker")
     .attr("orient", "auto")
   .append("path")
     .attr("d", "M0,-5L10,0L0,5")
-    .attr("fill","#050");
 
 var path= svg.append("g").selectAll("path")
   .data(viticci).enter()
@@ -104,50 +128,15 @@ var path= svg.append("g").selectAll("path")
     .attr("class","viticcio")
     .attr("id",function(d){return"("+d.source.id+","+d.target.id+")"})
     .attr("marker-end","url(#punta)")
-    .attr("class","viticcio")
-    .attr("fill","none");
 
 var circle= svg.append("g").selectAll("circle")
   .data(acini).enter()
     .append("circle")
     .attr("r", 30)
-    .attr("onclick",'alert(JSON.stringify(this))')
+    .attr("onclick",'follow(this)')
     .attr("id",function(d){return d.id;})
-    .attr("fill",acerba)
-    .attr("stroke",buccia_acerba)
+    .attr("class","uva_acerba")
     .call(force.drag);
-
-function inacerbisci(e){
-  d3.select(e)
-  .attr("fill",acerba)
-  .attr("stroke",buccia_acerba)
-}
-
-function invecchia(e){
-  T++;
-  if(acini[e.id].uva=="acerba"){
-    d3.select(e)
-    .attr("stroke",buccia_matura)
-    .attr("fill",matura)
-    acini[e.id].uva="matura";
-  }
-  else if(acini[e.id].uva=="matura"){
-    d3.select(e)
-    .attr("fill",passa)
-    .attr("stroke",buccia_passa)
-    acini[e.id].uva= "passa";
-  }
-}
-
-function tock() {
-  path.attr("d", linkArc);
-  circle.attr("transform", transform);
-}
-
-var line= d3.svg.line()
-  .x(function(d){return d.x;})
-  .y(function(d){return d.y;})
-  .interpolate("bundle");
 
 function linkArc(d) {
   var dx = d.target.x - d.source.x,
@@ -160,41 +149,74 @@ function transform(d) {
   return "translate(" + d.x + "," + d.y + ")";
 }
 
-var grosso= true;
-var T;
-
-onkeydown= function(e){
-    var code = e.keyCode ? e.keyCode : e.which;
-
-    switch(code){
-    case 32: accresci(); break;
-    case 13: DFS(); break;
-  }
+function tock() {
+  path.attr("d", linkArc);
+  circle.attr("transform", transform);
 }
 
-function DFS(){
+//Algoritmi sui grappoli
+
+var T=0;
+var quantoquanto= 300;
+
+function DFS()
+{
   inacerbizza();
-  grappolo.forEach(function(acino,i,grappolo) {
-    if(acini[i].uva=='acerba'){
-      invecchia(circle[0][1])
-      DFS_visit(i)
-    }
-  })
+  for(var i=0; i<enne; i++)
+    if(acini[i].uva=="acerba")
+            DFS_visit(i);
 }
 
-function DFS_visit(i){
-  invecchia(circle[0][i])
+function DFS_visit(i,reset){
+  invecchia(circle[0][i],quantoquanto)
   acini[i].d= T;
-  grappolo[i].forEach(function(viticcio,j,acino) {
-    if(viticcio!= 0 && acini[j].uva=='acerba')
-    {
-      acini[j].padre= i;
-      DFS_visit(j)
-    }
-  })
-  invecchia(circle[0][i])
+    for(var j=0; j<enne; j++)
+      if(grappolo[i][j]!=0 && acini[j].uva=="acerba")
+        {
+          path[0].forEach(function(d){
+              if(d.id=="("+i+","+j+")")
+              {
+                setTimeout(function(){
+                d3.select(d).attr("class","viticcio_to").attr("marker-end","url(#punta_to)")
+                },T*quantoquanto);
+                setTimeout(function(){
+                d3.select(d).attr("class","viticcio").attr("marker-end","url(#punta)")
+                },(T+1)*quantoquanto);
+              }
+            });
+          acini[j].padre= i;
+          DFS_visit(j);
+        }
+  invecchia(circle[0][i],quantoquanto)
   acini[i].f= T;
 }
+
+function follow(e){
+  DFS_visit(e.id);
+  T=0;
+}
+
+function invecchia(e,quanto){
+  T++;
+  quanto= quanto || 0;
+  if(acini[e.id].uva == "acerba"){
+    acini[e.id].uva = "matura";
+    setTimeout(function(){d3.select(e)
+    .attr("class","uva_matura");
+    },T*quantoquanto);
+  }
+  else if(acini[e.id].uva=="matura"){
+    acini[e.id].uva = "passa";
+    setTimeout(function(){d3.select(e)
+    .attr("class","uva_passa");
+    },T*quantoquanto);
+  }
+  else alert("basta");
+}
+
+//Interazione con il grappolo
+
+var grosso= true;
 
 function accresci(){
   if(grosso){ 
@@ -212,7 +234,29 @@ function accresci(){
 function inacerbizza(){
   T=0;
   acini.forEach(function(e){e.uva="acerba", e.padre=null, e.d=0, e.f=0})
-  circle[0].forEach(function(e){inacerbisci(e)})
+  circle[0].forEach(function(e){acerba(e)})
+}
+
+function acerba(e){
+  d3.select(e)
+  .attr("class","uva_acerba");
+}
+
+onkeydown= function(e){
+    var code = e.keyCode ? e.keyCode : e.which;
+
+    switch(code){
+    case 32: accresci(); break; // space
+    case 13: DFS(); break; // enter
+    case 8: inacerbizza(); break; // backspace
+    case 116: break; // F5
+    case 122: break; // F11
+    case 123: break; // F12
+    default: alert("codice tasto premuto: "+code+"\n\
+                    spazio:\t\t\tespande-comprime\n\
+                    invio:\t\t\tDFS\n\
+                    backspace:\t\t\treset");
+  }
 }
 
 </script>
