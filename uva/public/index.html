@@ -1,60 +1,20 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
-<style>
-
-.uva_acerba {
-  stroke-width: 5px;
-  fill: #ad9;
-  stroke: #595;
-}
-
-.uva_matura {
-  stroke-width: 5px;
-  fill: #b9a;
-  stroke: #939;
-}
-
-.uva_passa {
-  stroke-width: 5px;
-  fill: #525;
-  stroke: #213;
-}
-
-.viticcio {
-  fill: none;
-  stroke: #050;
-  stroke-width: 4px;
-}
-
-#punta {
-  fill: #050;
-}
-
-.viticcio_to {
-  fill: none;
-  stroke: #0f0;
-  stroke-width: 4px;
-}
-
-#punta_to {
-  fill: #0f0;
-}
-
-</style>
+<link rel="stylesheet" href="style.css">
 <body>
 <script src="//d3js.org/d3.v3.min.js"></script>
 <script>
 
 //Generazione del grappolo
 
-var enne= 50;
+var enne= 40;
 
 var grappolo= new Array(enne);
 
 for(var i= 0; i<enne; i++){
   grappolo[i]= new Array(enne);
   for(var j= 0; j<enne; j++){
-    if(i!==j && Math.random()*100>98)
+    if(i!==j && Math.random()*100>96)
       grappolo[i][j]= 1;
     else
       grappolo[i][j]= 0;
@@ -83,7 +43,8 @@ grappolo.forEach(function(acino,i,grappolo){
       viticci.push(
         {
           "source":acini[i],
-          "target":acini[j]
+          "target":acini[j],
+          "tipo":null
          }
       );
   });
@@ -100,8 +61,8 @@ var force = d3.layout.force()
   .nodes(d3.values(acini))
   .links(viticci)
   .size([width, height])
-  .linkDistance(10)
-  .charge(-100)
+  .linkDistance(20)
+  .charge(-300)
   .on("tick", tock)
   .start();
 
@@ -110,7 +71,7 @@ var svg = d3.select("body").append("svg")
     .attr("height", height);
 
 svg.append("defs").selectAll("marker")
-    .data(["punta","punta_to"])
+    .data(["punta","punta_B","punta_T","punta_to"])
   .enter().append("marker")
     .attr("id", function(d) { return d; })
     .attr("viewBox", "0 -5 10 10")
@@ -132,7 +93,7 @@ var path= svg.append("g").selectAll("path")
 var circle= svg.append("g").selectAll("circle")
   .data(acini).enter()
     .append("circle")
-    .attr("r", 30)
+    .attr("r", 35)
     .attr("onclick",'follow(this)')
     .attr("id",function(d){return d.id;})
     .attr("class","uva_acerba")
@@ -157,7 +118,7 @@ function tock() {
 //Algoritmi sui grappoli
 
 var T=0;
-var quantoquanto= 300;
+var quantoquanto= 200;
 
 function DFS()
 {
@@ -167,27 +128,35 @@ function DFS()
             DFS_visit(i);
 }
 
-function DFS_visit(i,reset){
-  invecchia(circle[0][i],quantoquanto)
+function DFS_visit(i){
+  invecchia(i)
   acini[i].d= T;
     for(var j=0; j<enne; j++)
-      if(grappolo[i][j]!=0 && acini[j].uva=="acerba")
+      if(grappolo[i][j]!=0)
         {
-          path[0].forEach(function(d){
-              if(d.id=="("+i+","+j+")")
+          if(acini[j].uva=="acerba")
+            acini[j].padre= i;
+          path[0].some(function(e){
+              if(e.id=="("+i+","+j+")")
               {
                 setTimeout(function(){
-                d3.select(d).attr("class","viticcio_to").attr("marker-end","url(#punta_to)")
+                  colora_viticcio(e,"to") //da rivedere
                 },T*quantoquanto);
-                setTimeout(function(){
-                d3.select(d).attr("class","viticcio").attr("marker-end","url(#punta)")
-                },(T+1)*quantoquanto);
+                if(acini[j].padre == i)
+                  setTimeout(function(){
+                    colora_viticcio(e,"T")
+                  },(T+1)*quantoquanto);
+                else
+                  setTimeout(function(){
+                    colora_viticcio(e,"B")
+                  },(T+1)*quantoquanto);
+                return e;
               }
             });
-          acini[j].padre= i;
-          DFS_visit(j);
+          if(acini[j].uva=="acerba")          
+            DFS_visit(j);
         }
-  invecchia(circle[0][i],quantoquanto)
+  invecchia(i)
   acini[i].f= T;
 }
 
@@ -196,22 +165,39 @@ function follow(e){
   T=0;
 }
 
-function invecchia(e,quanto){
+function invecchia(i){
+  var e = circle[0][i];
   T++;
-  quanto= quanto || 0;
   if(acini[e.id].uva == "acerba"){
     acini[e.id].uva = "matura";
-    setTimeout(function(){d3.select(e)
-    .attr("class","uva_matura");
+    setTimeout(function(){
+      d3.select(e).attr("class","uva_matura");
     },T*quantoquanto);
   }
   else if(acini[e.id].uva=="matura"){
     acini[e.id].uva = "passa";
-    setTimeout(function(){d3.select(e)
-    .attr("class","uva_passa");
+    setTimeout(function(){
+      d3.select(e).attr("class","uva_passa");
     },T*quantoquanto);
   }
-  else alert("basta");
+}
+
+function inacerbizza(){
+  T=0;
+  acini.forEach(function(e){e.uva="acerba", e.padre=null, e.d=0, e.f=0})
+  circle[0].forEach(function(e){acerba(e)})
+  path[0].forEach(function(e){colora_viticcio(e)})
+}
+
+function acerba(e){
+  d3.select(e)
+  .attr("class","uva_acerba");
+}
+
+function colora_viticcio(e,tipo){
+  if(tipo) tipo= '_'+tipo;
+  else tipo= '';
+  d3.select(e).attr("class","viticcio"+tipo).attr("marker-end","url(#punta"+tipo+")")
 }
 
 //Interazione con il grappolo
@@ -225,21 +211,10 @@ function accresci(){
   grosso= false;
   }
   else{
-  circle.attr("r",30);
+  circle.attr("r",35);
   force.linkDistance(20).charge(-200).start()
   grosso= true; 
   }
-}
-
-function inacerbizza(){
-  T=0;
-  acini.forEach(function(e){e.uva="acerba", e.padre=null, e.d=0, e.f=0})
-  circle[0].forEach(function(e){acerba(e)})
-}
-
-function acerba(e){
-  d3.select(e)
-  .attr("class","uva_acerba");
 }
 
 onkeydown= function(e){
