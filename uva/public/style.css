@@ -56,3 +56,25 @@
 #punta_T {
   fill: #00a;
 }
+
+.viticcio_F {
+  fill: none;
+  stroke: #d44;
+  stroke-dasharray: 0,5 7;
+  stroke-width: 4px;
+}
+
+#punta_F {
+  fill: #d44;
+}
+
+.viticcio_C {
+  fill: none;
+  stroke: #a88;
+  stroke-dasharray: 0,5 7;
+  stroke-width: 4px;
+}
+
+#punta_C {
+  fill: #a88;
+}

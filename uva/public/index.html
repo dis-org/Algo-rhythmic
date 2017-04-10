@@ -62,7 +62,7 @@ var force = d3.layout.force()
   .links(viticci)
   .size([width, height])
   .linkDistance(20)
-  .charge(-300)
+  .charge(-200)
   .on("tick", tock)
   .start();
 
@@ -71,7 +71,7 @@ var svg = d3.select("body").append("svg")
     .attr("height", height);
 
 svg.append("defs").selectAll("marker")
-    .data(["punta","punta_B","punta_T","punta_to"])
+    .data(["punta","punta_B","punta_T","punta_to","punta_F","punta_C"])
   .enter().append("marker")
     .attr("id", function(d) { return d; })
     .attr("viewBox", "0 -5 10 10")
@@ -118,7 +118,6 @@ function tock() {
 //Algoritmi sui grappoli
 
 var T=0;
-var quantoquanto= 200;
 
 function DFS()
 {
@@ -135,55 +134,46 @@ function DFS_visit(i){
       if(grappolo[i][j]!=0)
         {
           if(acini[j].uva=="acerba")
+          {
             acini[j].padre= i;
-          path[0].some(function(e){
-              if(e.id=="("+i+","+j+")")
-              {
-                setTimeout(function(){
-                  colora_viticcio(e,"to") //da rivedere
-                },T*quantoquanto);
-                if(acini[j].padre == i)
-                  setTimeout(function(){
-                    colora_viticcio(e,"T")
-                  },(T+1)*quantoquanto);
-                else
-                  setTimeout(function(){
-                    colora_viticcio(e,"B")
-                  },(T+1)*quantoquanto);
-                return e;
-              }
-            });
-          if(acini[j].uva=="acerba")          
+            tipo_viticcio(i,j,"T"); 
             DFS_visit(j);
+          }
+          else if(acini[j].uva=="matura")
+            tipo_viticcio(i,j,"B");
+          else if(acini[j].d > acini[i].d)
+            tipo_viticcio(i,j,"F");
+          else 
+            tipo_viticcio(i,j,"C");
         }
   invecchia(i)
   acini[i].f= T;
 }
 
-function follow(e){
-  DFS_visit(e.id);
-  T=0;
-}
+//Maturazione del grappolo
+
+var timer=0;
+var quantoquanto= 400;
 
 function invecchia(i){
   var e = circle[0][i];
-  T++;
+  T++; timer++;
   if(acini[e.id].uva == "acerba"){
     acini[e.id].uva = "matura";
     setTimeout(function(){
       d3.select(e).attr("class","uva_matura");
-    },T*quantoquanto);
+    },timer*quantoquanto);
   }
   else if(acini[e.id].uva=="matura"){
     acini[e.id].uva = "passa";
     setTimeout(function(){
       d3.select(e).attr("class","uva_passa");
-    },T*quantoquanto);
+    },timer*quantoquanto);
   }
 }
 
 function inacerbizza(){
-  T=0;
+  T=0; timer=0;
   acini.forEach(function(e){e.uva="acerba", e.padre=null, e.d=0, e.f=0})
   circle[0].forEach(function(e){acerba(e)})
   path[0].forEach(function(e){colora_viticcio(e)})
@@ -192,6 +182,21 @@ function inacerbizza(){
 function acerba(e){
   d3.select(e)
   .attr("class","uva_acerba");
+}
+
+function tipo_viticcio(i,j,tipo){
+  path[0].some(function(e){
+    if(e.id=="("+i+","+j+")")
+    {
+      setTimeout(function(){
+        colora_viticcio(e,"to") 
+      },(timer)*quantoquanto+quantoquanto/2);
+      setTimeout(function(){
+        colora_viticcio(e,tipo) 
+      },(timer+1)*quantoquanto);
+      return e;
+    }
+  });
 }
 
 function colora_viticcio(e,tipo){
@@ -203,11 +208,12 @@ function colora_viticcio(e,tipo){
 //Interazione con il grappolo
 
 var grosso= true;
+var stato= "acerbo";
 
 function accresci(){
   if(grosso){ 
   circle.attr("r",15);
-  force.linkDistance(100).charge(-500).start()
+  force.linkDistance(100).charge(-670).start()
   grosso= false;
   }
   else{
@@ -217,13 +223,25 @@ function accresci(){
   }
 }
 
+function follow(e){
+  if(acini[e.id].uva=="acerba"){
+    timer=0;
+    DFS_visit(e.id); 
+    if(stato!="maturo")
+    { 
+    stato="maturo";
+    setTimeout(function(){stato="marcio";},timer*quantoquanto);
+    }
+  }
+}
+
 onkeydown= function(e){
     var code = e.keyCode ? e.keyCode : e.which;
 
     switch(code){
     case 32: accresci(); break; // space
-    case 13: DFS(); break; // enter
-    case 8: inacerbizza(); break; // backspace
+    case 13: if(stato == "acerbo"){stato= "maturo"; DFS(); setTimeout(function(){stato= "marcio";},timer*quantoquanto)} break; // enter
+    case 8: if(stato == "marcio"){inacerbizza(); stato= "acerbo";} break; // backspace
     case 116: break; // F5
     case 122: break; // F11
     case 123: break; // F12
