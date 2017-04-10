@@ -1,0 +1,80 @@
+.uva_acerba {
+  stroke-width: 5px;
+  fill: #ad9;
+  stroke: #595;
+}
+
+.uva_matura {
+  stroke-width: 5px;
+  fill: #b9a;
+  stroke: #939;
+}
+
+.uva_passa {
+  stroke-width: 5px;
+  fill: #525;
+  stroke: #213;
+}
+
+.viticcio {
+  fill: none;
+  stroke: #050;
+  stroke-width: 4px;
+}
+
+#punta {
+  fill: #050;
+}
+
+.viticcio_to {
+  fill: none;
+  stroke: #0f0;
+  stroke-width: 4px;
+}
+
+#punta_to {
+  fill: #0f0;
+}
+
+.viticcio_B {
+  fill: none;
+  stroke: #500;
+  stroke-dasharray: 0,5 7;
+  stroke-width: 4px;
+}
+
+#punta_B {
+  fill: #500;
+}
+
+.viticcio_T {
+  fill: none;
+  stroke: #00a;
+  stroke-width: 4px;
+}
+
+#punta_T {
+  fill: #00a;
+}
+
+.viticcio_F {
+  fill: none;
+  stroke: #d44;
+  stroke-dasharray: 0,5 7;
+  stroke-width: 4px;
+}
+
+#punta_F {
+  fill: #d44;
+}
+
+.viticcio_C {
+  fill: none;
+  stroke: #a88;
+  stroke-dasharray: 0,5 7;
+  stroke-width: 4px;
+}
+
+#punta_C {
+  fill: #a88;
+}
