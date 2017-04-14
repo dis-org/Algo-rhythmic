@@ -38,13 +38,13 @@
 
 .viticcio_B {
   fill: none;
-  stroke: #500;
+  stroke: #a46;
   stroke-dasharray: 0,5 7;
   stroke-width: 4px;
 }
 
 #punta_B {
-  fill: #500;
+  fill: #a46;
 }
 
 .viticcio_T {
@@ -59,13 +59,13 @@
 
 .viticcio_F {
   fill: none;
-  stroke: #d44;
+  stroke: #46a;
   stroke-dasharray: 0,5 7;
   stroke-width: 4px;
 }
 
 #punta_F {
-  fill: #d44;
+  fill: #46a;
 }
 
 .viticcio_C {

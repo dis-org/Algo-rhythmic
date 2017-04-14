@@ -2,6 +2,11 @@
 <meta charset="utf-8">
 <link rel="stylesheet" href="style.css">
 <body>
+<svg>
+  <circle cx=300 cy=100 r=30 class="uva_acerba" id="reset"></circle>
+  <circle cx=400 cy=800 r=30 class="uva_matura" id="visit"></circle>
+  <circle cx=1600 cy=340 r=30 class="uva_passa" id="set"></circle>
+</svg>
 <script src="//d3js.org/d3.v3.min.js"></script>
 <script>
 
@@ -52,10 +57,8 @@ grappolo.forEach(function(acino,i,grappolo){
 
 //Magia
 
-var width = innerWidth*.98;
+var width = innerWidth*.98,
     height = innerHeight*.97;
-    x= 1;
-    y= 1;
 
 var force = d3.layout.force()
   .nodes(d3.values(acini))
@@ -66,7 +69,7 @@ var force = d3.layout.force()
   .on("tick", tock)
   .start();
 
-var svg = d3.select("body").append("svg")
+var svg = d3.select("body svg")
     .attr("width", width)
     .attr("height", height);
 
@@ -94,7 +97,6 @@ var circle= svg.append("g").selectAll("circle")
   .data(acini).enter()
     .append("circle")
     .attr("r", 35)
-    .attr("onclick",'follow(this)')
     .attr("id",function(d){return d.id;})
     .attr("class","uva_acerba")
     .call(force.drag);
@@ -152,8 +154,8 @@ function DFS_visit(i){
 
 //Maturazione del grappolo
 
-var timer=0;
-var quantoquanto= 400;
+var timer;
+var quantoquanto;
 
 function invecchia(i){
   var e = circle[0][i];
@@ -208,7 +210,7 @@ function colora_viticcio(e,tipo){
 //Interazione con il grappolo
 
 var grosso= true;
-var stato= "acerbo";
+var pronto= true;
 
 function accresci(){
   if(grosso){ 
@@ -223,32 +225,34 @@ function accresci(){
   }
 }
 
-function follow(e){
-  if(acini[e.id].uva=="acerba"){
-    timer=0;
-    DFS_visit(e.id); 
-    if(stato!="maturo")
-    { 
-    stato="maturo";
-    setTimeout(function(){stato="marcio";},timer*quantoquanto);
-    }
+function esegui(fun=function(e){},q,m){
+  if(pronto){
+    pronto= false;
+    prev= quantoquanto;
+    quantoquanto= q || 0;
+    set_mode(m);
+    fun();
+    setTimeout(function(){pronto=true; quantoquanto=prev;},timer*quantoquanto);
   }
 }
 
+function set_mode(m){
+  if(!m)
+    circle.attr("onmouseover",null).attr("onmouseleave",null).attr("onclick",null)
+  else if(m == "visit")
+    circle.attr("onmouseover","esegui(DFS_visit(this.id),0,'visit')").attr("onmouseleave","inacerbizza()")
+}
+
+var set= d3.select("body svg #set").attr("onclick","esegui(DFS,300);")
+var reset= d3.select("body svg #reset").attr("onclick","esegui(inacerbizza)")
+var visit= d3.select("body svg #visit").attr("onclick","esegui(function(){},0,'visit')")
+
+set_mode('visit')
+
 onkeydown= function(e){
     var code = e.keyCode ? e.keyCode : e.which;
-
     switch(code){
     case 32: accresci(); break; // space
-    case 13: if(stato == "acerbo"){stato= "maturo"; DFS(); setTimeout(function(){stato= "marcio";},timer*quantoquanto)} break; // enter
-    case 8: if(stato == "marcio"){inacerbizza(); stato= "acerbo";} break; // backspace
-    case 116: break; // F5
-    case 122: break; // F11
-    case 123: break; // F12
-    default: alert("codice tasto premuto: "+code+"\n\
-                    spazio:\t\t\tespande-comprime\n\
-                    invio:\t\t\tDFS\n\
-                    backspace:\t\t\treset");
   }
 }
 
