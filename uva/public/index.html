@@ -2,10 +2,7 @@
 <meta charset="utf-8">
 <link rel="stylesheet" href="style.css">
 <body>
-<svg>
-  <circle cx=300 cy=100 r=30 class="uva_acerba" id="reset"></circle>
-  <circle cx=400 cy=800 r=30 class="uva_matura" id="visit"></circle>
-  <circle cx=1600 cy=340 r=30 class="uva_passa" id="set"></circle>
+<svg id="essevvuggi" float="right">
 </svg>
 <script src="//d3js.org/d3.v3.min.js"></script>
 <script>
@@ -69,7 +66,7 @@ var force = d3.layout.force()
   .on("tick", tock)
   .start();
 
-var svg = d3.select("body svg")
+var svg = d3.select("body #essevvuggi")
     .attr("width", width)
     .attr("height", height);
 
@@ -138,14 +135,14 @@ function DFS_visit(i){
           if(acini[j].uva=="acerba")
           {
             acini[j].padre= i;
-            tipo_viticcio(i,j,"T"); 
+            tipo_viticcio(i,j,"T");
             DFS_visit(j);
           }
           else if(acini[j].uva=="matura")
             tipo_viticcio(i,j,"B");
           else if(acini[j].d > acini[i].d)
             tipo_viticcio(i,j,"F");
-          else 
+          else
             tipo_viticcio(i,j,"C");
         }
   invecchia(i)
@@ -191,10 +188,10 @@ function tipo_viticcio(i,j,tipo){
     if(e.id=="("+i+","+j+")")
     {
       setTimeout(function(){
-        colora_viticcio(e,"to") 
+        colora_viticcio(e,"to")
       },(timer)*quantoquanto+quantoquanto/2);
       setTimeout(function(){
-        colora_viticcio(e,tipo) 
+        colora_viticcio(e,tipo)
       },(timer+1)*quantoquanto);
       return e;
     }
@@ -213,7 +210,7 @@ var grosso= true;
 var pronto= true;
 
 function accresci(){
-  if(grosso){ 
+  if(grosso){
   circle.attr("r",15);
   force.linkDistance(100).charge(-670).start()
   grosso= false;
@@ -221,7 +218,7 @@ function accresci(){
   else{
   circle.attr("r",35);
   force.linkDistance(20).charge(-200).start()
-  grosso= true; 
+  grosso= true;
   }
 }
 
@@ -242,10 +239,23 @@ function set_mode(m){
   else if(m == "visit")
     circle.attr("onmouseover","esegui(DFS_visit(this.id),0,'visit')").attr("onmouseleave","inacerbizza()")
 }
+//  <text x="0" y="35" font-family="Verdana" font-size="35" onclick="esegui(DFS,300)"> DFS </text>
 
-var set= d3.select("body svg #set").attr("onclick","esegui(DFS,300);")
-var reset= d3.select("body svg #reset").attr("onclick","esegui(inacerbizza)")
-var visit= d3.select("body svg #visit").attr("onclick","esegui(function(){},0,'visit')")
+var funzioni= [
+  ["DFS","esegui(DFS,300)"],
+  ["DFS-visit", "esegui(function(){},0,'visit')"],
+  ["RESET", "esegui(inacerbizza)"]
+]
+
+svg.selectAll("text")
+.data(funzioni).enter()
+  .append("text")
+  .attr("x",0)
+  .attr("y",function(e,i){return i*37})
+  .attr("font-family","Verdana")
+  .attr("font-size",35)
+  .attr("onclick",function(e){return e[1]})
+  .attr("innerHTML",function(e){return e[0]})
 
 set_mode('visit')
 
