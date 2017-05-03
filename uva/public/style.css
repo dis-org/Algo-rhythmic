@@ -1,3 +1,7 @@
+.testo {
+  fill: #050
+}
+
 .uva_acerba {
   stroke-width: 5px;
   fill: #ad9;
@@ -14,6 +18,12 @@
   stroke-width: 5px;
   fill: #525;
   stroke: #213;
+}
+
+.uva_sorgente {
+  stroke-width: 5px;
+  fill: #700;
+  stroke: #500;
 }
 
 .viticcio {
