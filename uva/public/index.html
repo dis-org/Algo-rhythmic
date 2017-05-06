@@ -1,6 +1,9 @@
 <!DOCTYPE html>
-<meta charset="utf-8">
-<link rel="stylesheet" href="style.css">
+<head>
+  <title> Grappolo </title>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="style.css">
+</head>
 <body>
 <svg id="essevvuggi" float="right">
 </svg>
@@ -24,79 +27,118 @@ for(var i= 0; i<enne; i++){
 }
 
 var acini=[];
-
 var viticci=[];
 
-grappolo.forEach(function(acino,i,grappolo){
-  acini.push(
-    {
-      "id":i,
-      "uva":"acerba",
-      "padre":null,
-      "d":0,
-      "f":0
-      }
-    );
-});
-
-grappolo.forEach(function(acino,i,grappolo){
-  acino.forEach(function(viticcio,j,acino){
-    if(viticcio==1)
-      viticci.push(
-        {
-          "source":acini[i],
-          "target":acini[j],
-          "tipo":null
-         }
-      );
-  });
-});
-
-//Magia
+var piantato= false;
+var grosso= true;
+var pronto= true;
 
 var width = innerWidth*.98,
     height = innerHeight*.97;
-
-var force = d3.layout.force()
-  .nodes(d3.values(acini))
-  .links(viticci)
-  .size([width, height])
-  .linkDistance(20)
-  .charge(-200)
-  .on("tick", tock)
-  .start();
 
 var svg = d3.select("body #essevvuggi")
     .attr("width", width)
     .attr("height", height);
 
-svg.append("defs").selectAll("marker")
-    .data(["punta","punta_B","punta_T","punta_to","punta_F","punta_C"])
-  .enter().append("marker")
-    .attr("id", function(d) { return d; })
-    .attr("viewBox", "0 -5 10 10")
-    .attr("refX", 15)
-    .attr("refY", -1.5)
-    .attr("markerWidth", 5)
-    .attr("markerHeight", 5)
-    .attr("orient", "auto")
-  .append("path")
-    .attr("d", "M0,-5L10,0L0,5")
+var path, circle, force, ids;
 
-var path= svg.append("g").selectAll("path")
-  .data(viticci).enter()
+function pianta(){
+
+  if(piantato==true){
+    svg.selectAll("*").remove();
+    acini=[];
+    viticci=[];
+    force=null;
+  }
+
+  piantato= true;
+  grosso= true;
+
+  grappolo.forEach(function(acino,i,grappolo){
+    acini.push(
+      {
+        "id":i,
+        "uva":"acerba",
+        "padre":null,
+        "d":0,
+        "f":0,
+        "dist":Infinity
+        }
+      );
+  });
+
+  grappolo.forEach(function(acino,i,grappolo){
+    acino.forEach(function(viticcio,j,acino){
+      if(viticcio==1)
+        viticci.push(
+          {
+            "source":acini[i],
+            "target":acini[j],
+            "tipo":null
+          }
+        );
+    });
+  });
+
+  force = d3.layout.force()
+    .nodes(d3.values(acini))
+    .links(viticci)
+    .size([width, height])
+    .linkDistance(20)
+    .charge(-200)
+    .on("tick", tock)
+
+  svg.append("defs").selectAll("marker")
+      .data(["punta","punta_B","punta_T","punta_to","punta_F","punta_C"])
+    .enter().append("marker")
+      .attr("id", function(d) { return d; })
+      .attr("viewBox", "0 -5 10 10")
+      .attr("refX", 15)
+      .attr("refY", -1.5)
+      .attr("markerWidth", 5)
+      .attr("markerHeight", 5)
+      .attr("orient", "auto")
     .append("path")
-    .attr("class","viticcio")
-    .attr("id",function(d){return"("+d.source.id+","+d.target.id+")"})
-    .attr("marker-end","url(#punta)")
+      .attr("d", "M0,-5L10,0L0,5")
 
-var circle= svg.append("g").selectAll("circle")
-  .data(acini).enter()
-    .append("circle")
-    .attr("r", 35)
-    .attr("id",function(d){return d.id;})
-    .attr("class","uva_acerba")
-    .call(force.drag);
+  path= svg.append("g").selectAll("path")
+    .data(viticci).enter()
+      .append("path")
+      .attr("class","viticcio")
+      .attr("id",function(d){return"("+d.source.id+","+d.target.id+")"})
+      .attr("marker-end","url(#punta)")
+
+  circle= svg.append("g").selectAll("circle")
+    .data(acini).enter()
+      .append("circle")
+      .attr("r", 35)
+      .attr("id",function(d){return d.id;})
+      .attr("class","uva_acerba")
+      .call(force.drag);
+
+  ids= svg.append("g").selectAll("text")
+    .data(acini).enter()
+      .append("text")
+      .attr("x",-11)
+      .attr("y",8)
+      .attr("font-family","Verdana")
+      .attr("font-size",23)
+      .attr("display","none")
+      .text(function(d) { if(d.id<10)return '0'+d.id; return d.id });
+
+    svg.append("g").selectAll("text")
+  .data(funzioni).enter()
+    .append("text")
+    .attr("x",0)
+    .attr("y",function(e,i){return (i+1)*37})
+    .attr("font-family","Verdana")
+    .attr("font-size",35)
+    .attr("onclick",function(e){return e[1]})
+    .attr("class","testo")
+    .html(function(e){return e[0]})
+
+    force.start();
+};
 
 function linkArc(d) {
   var dx = d.target.x - d.source.x,
@@ -112,6 +154,7 @@ function transform(d) {
 function tock() {
   path.attr("d", linkArc);
   circle.attr("transform", transform);
+  ids.attr("transform", transform);
 }
 
 //Algoritmi sui grappoli
@@ -127,7 +170,7 @@ function DFS()
 }
 
 function DFS_visit(i){
-  invecchia(i)
+  invecchia(i);
   acini[i].d= T;
     for(var j=0; j<enne; j++)
       if(grappolo[i][j]!=0)
@@ -147,6 +190,40 @@ function DFS_visit(i){
         }
   invecchia(i)
   acini[i].f= T;
+}
+
+function BFS_visit(s){
+  var Q=[];
+  inacerbizza();
+  invecchia(s);
+  acini[s].dist=0;
+  Q.push(s);
+  while(Q.length>0)
+  {
+    var u= Q.pop();
+    for(var v= 0; v < enne; v++)
+    {
+      if(grappolo[u][v]!=0 && acini[v].uva=="acerba")
+      {
+        tipo_viticcio(u,v);
+        invecchia(v);
+        acini[v].dist= acini[u].dist + 1;
+        acini[v].padre= acini[u];
+        Q.push(v);
+      }
+    }
+    invecchia(u);
+  }
+}
+
+function trasponi(){
+  grappolo= grappolo[0].map(function(col, i) { 
+    return grappolo.map(function(row) { 
+    return row[i] 
+    })
+  });
+  pianta();
+  accresci();
 }
 
 //Maturazione del grappolo
@@ -170,10 +247,14 @@ function invecchia(i){
     },timer*quantoquanto);
   }
 }
+function seleziona(i){
+  var e = circle[0][i];
+   d3.select(e).attr("class","uva_sorgente");
+}
 
 function inacerbizza(){
   T=0; timer=0;
-  acini.forEach(function(e){e.uva="acerba", e.padre=null, e.d=0, e.f=0})
+  acini.forEach(function(e){e.uva="acerba", e.padre=null, e.d=0, e.f=0, e.dist=Infinity})
   circle[0].forEach(function(e){acerba(e)})
   path[0].forEach(function(e){colora_viticcio(e)})
 }
@@ -206,17 +287,16 @@ function colora_viticcio(e,tipo){
 
 //Interazione con il grappolo
 
-var grosso= true;
-var pronto= true;
-
 function accresci(){
   if(grosso){
   circle.attr("r",15);
+  ids.attr("display","inline");
   force.linkDistance(100).charge(-670).start()
   grosso= false;
   }
   else{
   circle.attr("r",35);
+  ids.attr("display","none");
   force.linkDistance(20).charge(-200).start()
   grosso= true;
   }
@@ -225,39 +305,47 @@ function accresci(){
 function esegui(fun=function(e){},q,m){
   if(pronto){
     pronto= false;
-    prev= quantoquanto;
     quantoquanto= q || 0;
     set_mode(m);
     fun();
-    setTimeout(function(){pronto=true; quantoquanto=prev;},timer*quantoquanto);
+    setTimeout(function(){pronto=true;},timer*quantoquanto);
   }
 }
 
-function set_mode(m){
-  if(!m)
-    circle.attr("onmouseover",null).attr("onmouseleave",null).attr("onclick",null)
-  else if(m == "visit")
-    circle.attr("onmouseover","esegui(DFS_visit(this.id),0,'visit')").attr("onmouseleave","inacerbizza()")
+function distanza(s){
+  BFS_visit(s)
+  setTimeout(function(){seleziona(s)},10);
 }
-//  <text x="0" y="35" font-family="Verdana" font-size="35" onclick="esegui(DFS,300)"> DFS </text>
+
+function set_mode(m){
+  circle.attr("onmouseover",null).attr("onmouseleave",null).attr("onclick",null)
+  ids.attr("onmouseover",null).attr("onmouseleave",null).attr("onclick",null)
+  if(m == "DFS_visit"){
+    ids.attr("onmouseover","esegui(DFS_visit(Number(this.innerHTML)),0,'DFS_visit')")
+    ids.attr("onmouseleave","inacerbizza()")}
+  else if(m == "BFS_visit")
+    ids.attr("onclick","esegui(BFS_visit(Number(this.innerHTML)),500,'BFS_visit')")
+  else if(m == "seleziona_sorgente")
+    ids.attr("onclick","esegui(distanza(Number(this.innerHTML)),0,'seleziona_bersaglio')")
+  else if(m == "seleziona_bersaglio")
+    ids.attr("onclick","esegui(alert('distanza dalla sorgente: '+acini[Number(this.innerHTML)].dist),0,'seleziona_bersaglio')")
+  else if(m == "info")
+    ids.attr("onclick","alert(JSON.stringify(acini[Number(this.innerHTML)]))")
+}
 
 var funzioni= [
-  ["DFS","esegui(DFS,300)"],
-  ["DFS-visit", "esegui(function(){},0,'visit')"],
-  ["RESET", "esegui(inacerbizza)"]
+  ["RESET", "esegui(inacerbizza)"],
+  ["DFS","esegui(DFS,500)"],
+  ["DFS_visit", "esegui(function(){},0,'DFS_visit')"],
+  ["BFS_visit","esegui(function(){},500,'BFS_visit')"],
+  ["Distanza","esegui(function(){},0,'seleziona_sorgente')"],
+  ["Trasponi","esegui(trasponi())"],
+  ["Ispeziona","esegui(function(){},0,'info')"],
+  ["Ingrandisci","accresci()"]
 ]
 
-svg.selectAll("text")
-.data(funzioni).enter()
-  .append("text")
-  .attr("x",0)
-  .attr("y",function(e,i){return i*37})
-  .attr("font-family","Verdana")
-  .attr("font-size",35)
-  .attr("onclick",function(e){return e[1]})
-  .attr("innerHTML",function(e){return e[0]})
-
-set_mode('visit')
+pianta();
+set_mode();
 
 onkeydown= function(e){
     var code = e.keyCode ? e.keyCode : e.which;
