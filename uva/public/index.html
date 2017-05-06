@@ -217,9 +217,9 @@ function BFS_visit(s){
 }
 
 function trasponi(){
-  grappolo= grappolo[0].map(function(col, i) { 
-    return grappolo.map(function(row) { 
-    return row[i] 
+  grappolo= grappolo[0].map(function(col, i) {
+    return grappolo.map(function(row) {
+    return row[i]
     })
   });
   pianta();
@@ -317,6 +317,22 @@ function distanza(s){
   setTimeout(function(){seleziona(s)},10);
 }
 
+function showinfo(acino) {
+  svg.append("text")
+    .attr("class", "infobox")
+    .attr("x",acino.x+15)
+    .attr("y",acino.y+15)
+    .attr("font-family","Verdana")
+    .attr("font-size",10)   //tspans to linebreak
+    .text("Padre: "+acino.padre+" Discovery time: "+acino.d+" Finishing time: "+acino.f+" Distanza dalla sorgente: "+acino.dist);
+}
+
+function destroyinfo() {
+  var todelete=document.getElementsByClassName('infobox');
+  for(var i=0; i<todelete.length; i++)
+    todelete[i].parentNode.removeChild(todelete[i])
+}
+
 function set_mode(m){
   circle.attr("onmouseover",null).attr("onmouseleave",null).attr("onclick",null)
   ids.attr("onmouseover",null).attr("onmouseleave",null).attr("onclick",null)
@@ -330,7 +346,8 @@ function set_mode(m){
   else if(m == "seleziona_bersaglio")
     ids.attr("onclick","esegui(alert('distanza dalla sorgente: '+acini[Number(this.innerHTML)].dist),0,'seleziona_bersaglio')")
   else if(m == "info")
-    ids.attr("onclick","alert(JSON.stringify(acini[Number(this.innerHTML)]))")
+    ids.attr("onmouseover","showinfo(acini[Number(this.innerHTML)])")
+    ids.attr("onmouseleave", "destroyinfo()")
 }
 
 var funzioni= [
