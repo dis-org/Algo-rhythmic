@@ -5,33 +5,87 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<svg id="essevvuggi" float="right">
-</svg>
-<script src="//d3js.org/d3.v3.min.js"></script>
-<script>
+  <svg id="essevvuggi" float="right"></svg>
+  <script src="//d3js.org/d3.v3.min.js"></script>
+  <script>
+/*
+ Indice:
+  -Interazione 
+  -Variabili
+  -Generazione 
+  -Magia
+  -Maturazione
+  -Alterazione
+  -Algoritmi
+*/
 
-//Generazione del grappolo
+//Interazione
 
-var enne= 40;
-
-var grappolo= new Array(enne);
-
-for(var i= 0; i<enne; i++){
-  grappolo[i]= new Array(enne);
-  for(var j= 0; j<enne; j++){
-    if(i!==j && Math.random()*100>96)
-      grappolo[i][j]= 1;
-    else
-      grappolo[i][j]= 0;
+  //eventi tastiera
+onkeydown= function(e){
+    var code = e.keyCode ? e.keyCode : e.which;
+    switch(code){
+    case 32: accresci(); break; //spazio
   }
 }
+  //lista per svg ["Funzione","onclick"] 
+var funzioni= [
+  ["RESET","inacerbizza()"],
+  ["DFS","DFS()"],
+  ["DFS_visit", "set_mode('DFS_visit')"],
+  ["BFS_visit","set_mode('BFS_visit')"],
+  ["Distanza","set_mode('seleziona_sorgente')"],
+  //["Trasponi","trasponi()"],
+  //["SCC","set_mode('SCC')"],
+  ["Ispeziona","set_mode('info')"],
+  ["Ingrandisci","accresci()"]
+]
+  //modalità di interazione
+function set_mode(m){
+  //reset
+  circle.attr("onmouseover",null).attr("onmouseleave",null).attr("onclick",null)
+  ids.attr("onmouseover",null).attr("onmouseleave",null).attr("onclick",null)
+  //ifelseifelseifelseif...
+  if(m == "DFS_visit")
+  {
+    ids.attr("onmouseover","DFS_visit(Number(this.innerHTML))")
+    ids.attr("onmouseleave","inacerbizza()")
+  }
+  else if(m == "BFS_visit")
+  {
+    ids.attr("onclick","BFS_visit(Number(this.innerHTML))")
+  }
+  else if(m == "seleziona_sorgente")
+  {
+    ids.attr("onclick","BFS_visit(Number(this.innerHTML))")
+    set_mode('seleziona_bersaglio');
+  }
+  else if(m == "seleziona_bersaglio")
+  {
+    ids.attr("onmouseover","showdistance(acini[Number(this.innerHTML)])")
+    ids.attr("onmouseleave", "destroyinfo()")  
+  }
+  else if(m == "SCC()")
+  {
+    ids.attr("onclick","SCC(Number(this.innerHTML))")
+  }
+  else if(m == "info")
+  {
+    ids.attr("onmouseover","showinfo(acini[Number(this.innerHTML)])")
+    ids.attr("onmouseleave", "destroyinfo()")  
+  }
+}
+    
+//Variabili globali
 
-var acini=[];
-var viticci=[];
+var enne= 50; //#vertici  |V|
+var grappolo; //grafo   G(V,E)
+var acini=[]; //vertici    V
+var viticci=[]; //archi    E
 
-var piantato= false;
+//var piantato= false; 
 var grosso= true;
-var pronto= true;
+//var pronto= true;
 
 var width = innerWidth*.98,
     height = innerHeight*.97;
@@ -40,8 +94,24 @@ var svg = d3.select("body #essevvuggi")
     .attr("width", width)
     .attr("height", height);
 
-var path, circle, force, ids;
+var force; // d3.force per fisica
+var path, circle, ids, functions; //classi svg
 
+//Generazione grappolo
+
+  //generazione matrice [n x n]
+var grappolo= new Array(enne);
+for(var i= 0; i<enne; i++){
+  grappolo[i]= new Array(enne);
+  for(var j= 0; j<enne; j++){
+    if(i!==j && Math.random()*enne*enne*0.7<enne)
+      grappolo[i][j]= 1;
+    else
+      grappolo[i][j]= 0;
+  }
+}
+
+/* 
 function pianta(){
 
   if(piantato==true){
@@ -53,32 +123,40 @@ function pianta(){
 
   piantato= true;
   grosso= true;
-
-  grappolo.forEach(function(acino,i,grappolo){
-    acini.push(
-      {
-        "id":i,
-        "uva":"acerba",
-        "padre":null,
-        "d":0,
-        "f":0,
-        "dist":Infinity
+*/
+  function crea_acini(){
+    grappolo.forEach(function(acino,i,grappolo){
+      acini.push(
+        {
+          "id":i,
+          "uva":"acerba",
+          "padre":null,
+          "d":0,
+          "f":0,
+          "dist":Infinity
         }
       );
-  });
-
-  grappolo.forEach(function(acino,i,grappolo){
-    acino.forEach(function(viticcio,j,acino){
-      if(viticcio==1)
-        viticci.push(
-          {
-            "source":acini[i],
-            "target":acini[j],
-            "tipo":null
-          }
-        );
     });
-  });
+  }
+
+  crea_acini();
+
+  function crea_viticci(){
+    grappolo.forEach(function(acino,i,grappolo){
+      acino.forEach(function(viticcio,j,acino){
+        if(viticcio==1)
+          viticci.push(
+            {
+              "source":acini[i],
+              "target":acini[j],
+              "tipo":null
+            }
+          );
+      });
+    });
+  }
+
+  crea_viticci();
 
   force = d3.layout.force()
     .nodes(d3.values(acini))
@@ -101,12 +179,17 @@ function pianta(){
     .append("path")
       .attr("d", "M0,-5L10,0L0,5")
 
-  path= svg.append("g").selectAll("path")
+  path= create_path(); //nel tentativo di ricaricare parzialmente
+  
+  function create_path(){
+    return svg.append("g").selectAll("path")
+    .remove() //se funziona bene da mettere a tutti
     .data(viticci).enter()
       .append("path")
       .attr("class","viticcio")
       .attr("id",function(d){return"("+d.source.id+","+d.target.id+")"})
-      .attr("marker-end","url(#punta)")
+      .attr("marker-end","url(#punta)");
+  }
 
   circle= svg.append("g").selectAll("circle")
     .data(acini).enter()
@@ -124,9 +207,10 @@ function pianta(){
       .attr("font-family","Verdana")
       .attr("font-size",23)
       .attr("display","none")
-      .text(function(d) { if(d.id<10)return '0'+d.id; return d.id });
+      .text(function(d) { if(d.id<10)return '0'+d.id; return d.id })
+      .call(force.drag);
 
-    svg.append("g").selectAll("text")
+  functions= svg.append("g").selectAll("text")
   .data(funzioni).enter()
     .append("text")
     .attr("x",0)
@@ -137,8 +221,11 @@ function pianta(){
     .attr("class","testo")
     .html(function(e){return e[0]})
 
-    force.start();
-};
+force.start();
+set_mode();
+//};
+
+//Magia
 
 function linkArc(d) {
   var dx = d.target.x - d.source.x,
@@ -157,6 +244,128 @@ function tock() {
   ids.attr("transform", transform);
 }
 
+function showinfo(acino) {
+  svg.append("text")
+    .attr("class","infobox")
+    .attr("x",acino.x+15)
+    .attr("y",acino.y+15)
+    .attr("font-family","Verdana")
+    .attr("font-size",10)   //tspans to linebreak
+    .text("Parent: "+acino.padre+" Discovery time: "+acino.d+" Finishing time: "+acino.f+" Distance: "+acino.dist);
+}
+
+function showdistance(acino) {
+   svg.append("text")
+    .attr("class","infobox")
+    .attr("x",acino.x+15)
+    .attr("y",acino.y+15)
+    .attr("font-family","Verdana")
+    .attr("font-size",20)
+    .text(" "+acino.dist);
+}
+
+function destroyinfo() {
+  var todelete=document.getElementsByClassName('infobox');
+  for(var i=0; i<todelete.length; i++)
+    todelete[i].parentNode.removeChild(todelete[i])
+}
+
+//Maturazione del grappolo
+
+var timer; //ricontrollare in ogni sua occorrenza
+var quantoquanto;
+
+function invecchia(i){
+  var e = circle[0][i];
+  T++; timer++;
+  if(acini[e.id].uva == "acerba"){
+    acini[e.id].uva = "matura";
+    setTimeout(function(){
+      d3.select(e).attr("class","uva_matura");
+    },timer*quantoquanto);
+  }
+  else if(acini[e.id].uva=="matura"){
+    acini[e.id].uva = "passa";
+    setTimeout(function(){
+      if(acini[e.id].padre==null)
+        d3.select(e).attr("class","uva_sorgente");
+      else
+        d3.select(e).attr("class","uva_passa");
+    },timer*quantoquanto);
+  }
+}
+
+function inacerbizza(){
+  T=0;
+  acini.forEach(function(e){e.uva="acerba", e.padre=null, e.d=0, e.f=0, e.dist=Infinity})
+  circle[0].forEach(function(e){acerba(e)})
+  path[0].forEach(function(e){colora_viticcio(e)})
+}
+
+function acerba(e){
+  d3.select(e).attr("class","uva_acerba");
+}
+
+function tipo_viticcio(i,j,tipo){
+  path[0].some(function(e){
+    if(e.id=="("+i+","+j+")")
+    {
+      setTimeout(function(){
+        colora_viticcio(e,"to")
+      },(timer)*quantoquanto+quantoquanto/2);
+      setTimeout(function(){
+        colora_viticcio(e,tipo)
+      },(timer+1)*quantoquanto);
+      return e;
+    }
+  });
+}
+
+function colora_viticcio(e,tipo){
+  if(tipo) tipo= '_'+tipo;
+  else tipo= '';
+  d3.select(e).attr("class","viticcio"+tipo).attr("marker-end","url(#punta"+tipo+")")
+}
+
+//Alterazione del grappolo
+
+function accresci(){
+  if(grosso){
+  circle.attr("r",15);
+  ids.attr("display","inline");
+  force.linkDistance(100).charge(-670).start()
+  grosso= false;
+  }
+  else{
+  circle.attr("r",35);
+  ids.attr("display","none");
+  force.linkDistance(20).charge(-200).start()
+  grosso= true;
+  }
+}
+
+function trasponi(){
+  grappolo= grappolo[0].map(function(col, i) { 
+    return grappolo.map(function(row) { 
+    return row[i] 
+    })
+  });
+  viticci=[];
+  crea_viticci();
+  create_path();
+  force.start();
+  /*pianta(); //da migliorare
+  accresci();*/
+}
+
+/*function esegui(fun){
+  if(pronto==true){
+    pronto= false;
+    fun();
+    setTimeout(function(){pronto=true;return true;},timer*quantoquanto);
+  }
+}*/
+
 //Algoritmi sui grappoli
 
 var T=0;
@@ -165,11 +374,12 @@ function DFS()
 {
   inacerbizza();
   for(var i=0; i<enne; i++)
-    if(acini[i].uva=="acerba")
-            DFS_visit(i);
+    DFS_visit(i);
 }
 
 function DFS_visit(i){
+  if(acini[i].uva!="acerba")
+    return;
   invecchia(i);
   acini[i].d= T;
     for(var j=0; j<enne; j++)
@@ -208,7 +418,7 @@ function BFS_visit(s){
         tipo_viticcio(u,v);
         invecchia(v);
         acini[v].dist= acini[u].dist + 1;
-        acini[v].padre= acini[u];
+        acini[v].padre= u;
         Q.push(v);
       }
     }
@@ -216,160 +426,20 @@ function BFS_visit(s){
   }
 }
 
-function trasponi(){
-  grappolo= grappolo[0].map(function(col, i) {
-    return grappolo.map(function(row) {
-    return row[i]
-    })
-  });
-  pianta();
-  accresci();
-}
-
-//Maturazione del grappolo
-
-var timer;
-var quantoquanto;
-
-function invecchia(i){
-  var e = circle[0][i];
-  T++; timer++;
-  if(acini[e.id].uva == "acerba"){
-    acini[e.id].uva = "matura";
-    setTimeout(function(){
-      d3.select(e).attr("class","uva_matura");
-    },timer*quantoquanto);
-  }
-  else if(acini[e.id].uva=="matura"){
-    acini[e.id].uva = "passa";
-    setTimeout(function(){
-      d3.select(e).attr("class","uva_passa");
-    },timer*quantoquanto);
-  }
-}
-function seleziona(i){
-  var e = circle[0][i];
-   d3.select(e).attr("class","uva_sorgente");
-}
-
-function inacerbizza(){
-  T=0; timer=0;
-  acini.forEach(function(e){e.uva="acerba", e.padre=null, e.d=0, e.f=0, e.dist=Infinity})
-  circle[0].forEach(function(e){acerba(e)})
-  path[0].forEach(function(e){colora_viticcio(e)})
-}
-
-function acerba(e){
-  d3.select(e)
-  .attr("class","uva_acerba");
-}
-
-function tipo_viticcio(i,j,tipo){
-  path[0].some(function(e){
-    if(e.id=="("+i+","+j+")")
-    {
-      setTimeout(function(){
-        colora_viticcio(e,"to")
-      },(timer)*quantoquanto+quantoquanto/2);
-      setTimeout(function(){
-        colora_viticcio(e,tipo)
-      },(timer+1)*quantoquanto);
-      return e;
+function SCC(s){
+  var cesto=[];
+  var barattolo=[];
+  for(var i= 0; i<enne; i++)
+    if(acini[i].uva=="passa") cesto.push(i);
+  DFS_visit(s)
+  for(var i= 0; i<cesto.length; i++)
+    if(acini[i].uva=="passa"){
+      barattolo.push(i);
+      seleziona(i);
     }
-  });
+  alert(barattolo);
+  return barattolo;
 }
 
-function colora_viticcio(e,tipo){
-  if(tipo) tipo= '_'+tipo;
-  else tipo= '';
-  d3.select(e).attr("class","viticcio"+tipo).attr("marker-end","url(#punta"+tipo+")")
-}
-
-//Interazione con il grappolo
-
-function accresci(){
-  if(grosso){
-  circle.attr("r",15);
-  ids.attr("display","inline");
-  force.linkDistance(100).charge(-670).start()
-  grosso= false;
-  }
-  else{
-  circle.attr("r",35);
-  ids.attr("display","none");
-  force.linkDistance(20).charge(-200).start()
-  grosso= true;
-  }
-}
-
-function esegui(fun=function(e){},q,m){
-  if(pronto){
-    pronto= false;
-    quantoquanto= q || 0;
-    set_mode(m);
-    fun();
-    setTimeout(function(){pronto=true;},timer*quantoquanto);
-  }
-}
-
-function distanza(s){
-  BFS_visit(s)
-  setTimeout(function(){seleziona(s)},10);
-}
-
-function showinfo(acino) {
-  svg.append("text")
-    .attr("class", "infobox")
-    .attr("x",acino.x+15)
-    .attr("y",acino.y+15)
-    .attr("font-family","Verdana")
-    .attr("font-size",10)   //tspans to linebreak
-    .text("Padre: "+acino.padre+" Discovery time: "+acino.d+" Finishing time: "+acino.f+" Distanza dalla sorgente: "+acino.dist);
-}
-
-function destroyinfo() {
-  var todelete=document.getElementsByClassName('infobox');
-  for(var i=0; i<todelete.length; i++)
-    todelete[i].parentNode.removeChild(todelete[i])
-}
-
-function set_mode(m){
-  circle.attr("onmouseover",null).attr("onmouseleave",null).attr("onclick",null)
-  ids.attr("onmouseover",null).attr("onmouseleave",null).attr("onclick",null)
-  if(m == "DFS_visit"){
-    ids.attr("onmouseover","esegui(DFS_visit(Number(this.innerHTML)),0,'DFS_visit')")
-    ids.attr("onmouseleave","inacerbizza()")}
-  else if(m == "BFS_visit")
-    ids.attr("onclick","esegui(BFS_visit(Number(this.innerHTML)),500,'BFS_visit')")
-  else if(m == "seleziona_sorgente")
-    ids.attr("onclick","esegui(distanza(Number(this.innerHTML)),0,'seleziona_bersaglio')")
-  else if(m == "seleziona_bersaglio")
-    ids.attr("onclick","esegui(alert('distanza dalla sorgente: '+acini[Number(this.innerHTML)].dist),0,'seleziona_bersaglio')")
-  else if(m == "info")
-    ids.attr("onmouseover","showinfo(acini[Number(this.innerHTML)])")
-    ids.attr("onmouseleave", "destroyinfo()")
-}
-
-var funzioni= [
-  ["RESET", "esegui(inacerbizza)"],
-  ["DFS","esegui(DFS,500)"],
-  ["DFS_visit", "esegui(function(){},0,'DFS_visit')"],
-  ["BFS_visit","esegui(function(){},500,'BFS_visit')"],
-  ["Distanza","esegui(function(){},0,'seleziona_sorgente')"],
-  ["Trasponi","esegui(trasponi())"],
-  ["Ispeziona","esegui(function(){},0,'info')"],
-  ["Ingrandisci","accresci()"]
-]
-
-pianta();
-set_mode();
-
-onkeydown= function(e){
-    var code = e.keyCode ? e.keyCode : e.which;
-    switch(code){
-    case 32: accresci(); break; // space
-  }
-}
-
-</script>
+  </script>
 </body>
