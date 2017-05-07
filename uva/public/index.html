@@ -11,12 +11,12 @@
 /*
  Indice:
   -Interazione 
-  -Variabili globali
-  -Generazione
-  -Magia (d3.force)
-  -Maturazione (grafica)
-  -Alterazione (altre funzioni)
-  -Algoritmi sui grappoli
+  -Variabili
+  -Generazione 
+  -Magia
+  -Maturazione
+  -Alterazione
+  -Algoritmi
 */
 
 //Interazione
@@ -60,8 +60,10 @@ function set_mode(m){
     ids.attr("onclick","BFS_visit(Number(this.innerHTML))")
     set_mode('seleziona_bersaglio');
   }
-  else if(m == "seleziona_bersaglio"){
-    ids.attr("onclick","alert('distanza dalla sorgente: '+acini[Number(this.innerHTML)].dist)");
+  else if(m == "seleziona_bersaglio")
+  {
+    ids.attr("onmouseover","showdistance(acini[Number(this.innerHTML)])")
+    ids.attr("onmouseleave", "destroyinfo()")  
   }
   else if(m == "SCC()")
   {
@@ -69,10 +71,11 @@ function set_mode(m){
   }
   else if(m == "info")
   {
-    ids.attr("onclick","alert(JSON.stringify(acini[Number(this.innerHTML)]))")
+    ids.attr("onmouseover","showinfo(acini[Number(this.innerHTML)])")
+    ids.attr("onmouseleave", "destroyinfo()")  
   }
 }
-
+    
 //Variabili globali
 
 var enne= 50; //#vertici  |V|
@@ -239,6 +242,32 @@ function tock() {
   path.attr("d", linkArc);
   circle.attr("transform", transform);
   ids.attr("transform", transform);
+}
+
+function showinfo(acino) {
+  svg.append("text")
+    .attr("class","infobox")
+    .attr("x",acino.x+15)
+    .attr("y",acino.y+15)
+    .attr("font-family","Verdana")
+    .attr("font-size",10)   //tspans to linebreak
+    .text("Parent: "+acino.padre+" Discovery time: "+acino.d+" Finishing time: "+acino.f+" Distance: "+acino.dist);
+}
+
+function showdistance(acino) {
+   svg.append("text")
+    .attr("class","infobox")
+    .attr("x",acino.x+15)
+    .attr("y",acino.y+15)
+    .attr("font-family","Verdana")
+    .attr("font-size",20)
+    .text(" "+acino.dist);
+}
+
+function destroyinfo() {
+  var todelete=document.getElementsByClassName('infobox');
+  for(var i=0; i<todelete.length; i++)
+    todelete[i].parentNode.removeChild(todelete[i])
 }
 
 //Maturazione del grappolo
