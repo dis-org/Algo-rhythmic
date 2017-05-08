@@ -1,5 +1,13 @@
-.testo {
-  fill: #050
+.selectable {
+  fill: #050;
+}
+
+.unselectable {
+  fill: #bbb;
+}
+
+.selected {
+  fill: #939;
 }
 
 .uva_acerba {
