@@ -74,7 +74,7 @@ function exec(m){
   circle.attr("onmouseover",null).attr("onmouseleave",null).attr("onclick",null)
   ids.attr("onmouseover",null).attr("onmouseleave",null).attr("onclick",null)
   //ifelseifelseifelseif...
-  if(m=="Trasponi") trasponi();
+  if(m == "Trasponi") trasponi();
   if(m == "RESET") inacerbizza();
   else if(m == "DFS") DFS();
   else if(m == "DFS_visit")
@@ -101,8 +101,8 @@ function exec(m){
         barattolo.push(i);
       }
     setTimeout(function(){
-      inacerbizza();
-      barattolo.forEach(function(e){invecchia(e)});
+      trasponi()
+      barattolo.forEach(function(e){avvinazza(e)});
     },quantoquanto*timer+10);
   }
   else if(m == "BFS_visit")
@@ -124,14 +124,14 @@ function exec(m){
     
 //Variabili globali
 
-var enne= 50; //#vertici  |V|
+var enne= parseInt(Math.random()*50); //#vertici  |V|
 var grappolo; //grafo   G(V,E)
 var acini=[]; //vertici    V
 var viticci=[]; //archi    E
 
 var piantato= false; 
 var grosso= true;
-var quantoquanto= 0;
+var quantoquanto= 500;
 var timer=0;
 
 var width = innerWidth*.98,
@@ -378,7 +378,7 @@ function invecchia(i){
     acini[e.id].uva = "passa";
     setTimeout(function(){
       if(acini[e.id].padre==null)
-        d3.select(e).attr("class","uva_sorgente");
+        d3.select(e).attr("class","vino");
       else
         d3.select(e).attr("class","uva_passa");
     },timer*quantoquanto);
@@ -394,6 +394,15 @@ function inacerbizza(){
 
 function acerba(e){
   d3.select(e).attr("class","uva_acerba");
+}
+
+function avvinazza(i){
+  circle[0].some(function(a){
+    if(a.id==i){
+      d3.select(a).attr("class","vino");
+      return i;
+    }
+  });
 }
 
 function tipo_viticcio(i,j,tipo){
