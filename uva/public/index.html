@@ -10,9 +10,9 @@
   <script>
 /*
  Indice:
-  -Interazione 
+  -Interazione
   -Variabili
-  -Generazione 
+  -Generazione
   -Magic
   -Maturazione
   -Alterazione
@@ -34,7 +34,7 @@ var funzioni= [
     "name":"RESET",
     "state":"unselectable",
     "deactivate":["RESET","Distanza","SCC"],
-    "activate":["DFS","DFS_visit","BFS_visit"]
+    "activate":["DFS","DFS_visit","BFS_visit","Bellman_Ford"]
   },  {
     "name":"DFS",
     "state":"selectable",
@@ -43,7 +43,7 @@ var funzioni= [
   },  {
     "name":"DFS_visit",
     "state":"selectable",
-    "deactivate":["RESET","DFS","BFS_visit","Distanza","Ispeziona"],
+    "deactivate":["RESET","DFS","BFS_visit","Distanza","Ispeziona","Bellman_Ford"],
     "activate":["RESET","Ispeziona"]
   },  {
     "name":"SCC",
@@ -65,6 +65,11 @@ var funzioni= [
   },  {
     "name":"Ispeziona",
     "state":"selectable"
+  }, {
+    "name": "Bellman_Ford",
+    "state": "selectable",
+    "deactivate":["RESET","DFS","DFS_visit","Distanza","Ispeziona"],
+    "activate":["RESET","Ispeziona"]
   }
 ]
 
@@ -81,13 +86,13 @@ function exec(m){
   {
     ids.attr("onclick","{DFS_visit(Number(this.innerHTML));set_states(['SCC'],'selectable');create_list();}");
   }
-  else if(m == "SCC") 
+  else if(m == "SCC")
   {
     var cesto=[];
     var barattolo=[];
     var sorgente;
-    for(var i=0; i<enne; i++) 
-      if(acini[i].uva=="passa") 
+    for(var i=0; i<enne; i++)
+      if(acini[i].uva=="passa")
       {
         if(acini[i].padre==null)
           sorgente=i;
@@ -96,7 +101,7 @@ function exec(m){
     trasponi();
     timer=0;
     DFS_visit(sorgente);
-    for(var i=0; i<enne; i++) 
+    for(var i=0; i<enne; i++)
       if(acini[i].uva=="passa" && cesto.some(function(e){if(e==i)return i})){
         barattolo.push(i);
       }
@@ -112,24 +117,28 @@ function exec(m){
   else if(m == "Distanza")
   {
     ids.attr("onmouseover","showdistance(acini[Number(this.innerHTML)])")
-    ids.attr("onmouseleave", "destroyinfo()")  
+    ids.attr("onmouseleave", "destroyinfo()")
   }
   else if(m == "Ispeziona")
   {
     ids.attr("onmouseover","showinfo(acini[Number(this.innerHTML)])")
-    ids.attr("onmouseleave", "destroyinfo()") 
-    circle.attr("onmouseleave","destroyinfo()") 
+    ids.attr("onmouseleave", "destroyinfo()")
+    circle.attr("onmouseleave","destroyinfo()")
+  }
+  else if(m == "Bellman_Ford")
+  {
+    ids.attr("onclick", "Bellman_Ford(Number(this.innerHTML))")
   }
 }
-    
+
 //Variabili globali
 
-var enne= parseInt(Math.random()*50); //#vertici  |V|
+var enne= parseInt(Math.random()*30+1); //#vertici  |V|
 var grappolo; //grafo   G(V,E)
 var acini=[]; //vertici    V
 var viticci=[]; //archi    E
 
-var piantato= false; 
+var piantato= false;
 var grosso= true;
 var quantoquanto= 500;
 var timer=0;
@@ -152,7 +161,7 @@ for(var i= 0; i<enne; i++){
   grappolo[i]= new Array(enne);
   for(var j= 0; j<enne; j++){
     if(i!==j && Math.random()*enne*enne*0.7<enne)
-      grappolo[i][j]= 1;
+      grappolo[i][j]= parseInt(Math.random()*20-10);
     else
       grappolo[i][j]= 0;
   }
@@ -194,6 +203,21 @@ svg.append("defs").selectAll("marker")
     .attr("orient", "auto")
   .append("path")
     .attr("d", "M0,-5L10,0L0,5")
+
+    svg.append("defs").selectAll("marker")
+        .data(viticci)
+      .enter().append("marker")
+        .attr("id",function(d){return"w("+d.source.id+","+d.target.id+")"})
+        .attr("viewBox", "0 -10 10 10")
+        .attr("refX", -11)
+        .attr("refY", 0)
+        .attr("markerWidth", 5)
+        .attr("markerHeight", 5)
+        .attr("orient", "auto")
+      .append("text")
+        .attr("font-family","Verdana")
+        .attr("font-size",10)
+        .text(function(a){return a.peso;})
 
 path= create_path(); //nel tentativo di ricaricare parzialmente
 
@@ -238,12 +262,15 @@ function crea_acini(){
 function crea_viticci(){
   grappolo.forEach(function(acino,i,grappolo){
     acino.forEach(function(viticcio,j,acino){
-      if(viticcio==1)
+      if(viticcio!=0)
         viticci.push(
           {
             "source":acini[i],
             "target":acini[j],
-            "tipo":null
+            "tipo":null,
+            "u":i,
+            "v":j,
+            "peso":grappolo[i][j]
           }
         );
     });
@@ -257,7 +284,8 @@ function create_path(){
     .append("path")
     .attr("class","viticcio")
     .attr("id",function(d){return"("+d.source.id+","+d.target.id+")"})
-    .attr("marker-end","url(#punta)");
+    .attr("marker-end","url(#punta)")
+    .attr("marker-start",function(d){return "url('#w("+d.source.id+","+d.target.id+")')";})
 }
 
 function create_list(){
@@ -288,6 +316,11 @@ function linkArc(d) {
 }
 
 function transform(d) {
+  return "translate(" + d.x + "," + d.y + ")";
+}
+
+function place(d) {
+
   return "translate(" + d.x + "," + d.y + ")";
 }
 
@@ -330,19 +363,19 @@ var selected;
 var previous_state;
 
 function handle(that){
-  if(funzioni.some(function(e){ 
+  if(funzioni.some(function(e){
       if(e.name==that.innerHTML) //trovo la funzione cliccata
       {
         //modifica la lista
         set_states([selected],"unselectable")//da rivedere
         selected= e.name;
         set_states([selected],"selected")
-        if(e.deactivate) set_states(e.deactivate,"unselectable"); 
-        
+        if(e.deactivate) set_states(e.deactivate,"unselectable");
+
         create_list(); //la aggiorna
 
         exec(selected); //quello che deve fare
-        
+
         setTimeout(function(){
           timer=0;
           if(e.activate) set_states(e.activate,"selectable");
@@ -423,7 +456,8 @@ function tipo_viticcio(i,j,tipo){
 function colora_viticcio(e,tipo){
   if(tipo) tipo= '_'+tipo;
   else tipo= '';
-  d3.select(e).attr("class","viticcio"+tipo).attr("marker-end","url(#punta"+tipo+")")
+  d3.select(e).attr("class","viticcio"+tipo)
+    .attr("marker-end","url(#punta"+tipo+")")
 }
 
 //Alterazione del grappolo
@@ -444,9 +478,9 @@ function accresci(){
 }
 
 function trasponi(){
-  grappolo= grappolo[0].map(function(col, i) { 
-    return grappolo.map(function(row) { 
-    return row[i] 
+  grappolo= grappolo[0].map(function(col, i) {
+    return grappolo.map(function(row) {
+    return row[i]
     })
   });
   pianta(); //da migliorare
@@ -511,6 +545,40 @@ function BFS_visit(s){
     }
     invecchia(u);
   }
+}
+
+function Bellman_Ford(s){
+  var i= 0;
+  var changes= true;
+  inacerbizza();
+  acini[s].dist=0;
+  avvinazza(s);
+  while(changes==true && i<enne)
+    {
+      i++;
+      changes= false;
+      for(var e=0; e<viticci.length; e++)
+        if(relax(viticci[e].u, viticci[e].v)==true)
+          changes= true;
+      alert(""+i+"  "+changes)
+    }
+  if(i!=enne) return true;
+  else {return false; alert("Ciclo di costo negativo.")}
+}
+
+function relax(u,v){
+  timer++;
+  if(acini[v].dist>acini[u].dist+grappolo[u][v])
+    {
+      tipo_viticcio(u,v,"T");
+      acini[v].dist= acini[u].dist+grappolo[u][v];
+      if(acini[v].padre) tipo_viticcio(acini[v].padre,v,"F");
+      acini[v].padre= u;
+      return true;
+    }
+  else if(acini[v].padre==null) tipo_viticcio(u,v,"C");
+  else tipo_viticcio(u,v,"T")
+  return false;
 }
 
   </script>
