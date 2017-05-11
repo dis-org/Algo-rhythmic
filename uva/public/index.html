@@ -29,63 +29,73 @@ onkeydown= function(e){
   }
 }
   //lista per svg
+var f1=["RESET","DFS","DFS_visit","BFS_visit","Distanza","Ispeziona","Bellman_Ford","Dijkstra"]
+var f2=["RESET","Ispeziona"]
 var funzioni= [
   {
     "name":"RESET",
     "state":"unselectable",
     "deactivate":["RESET","Distanza","SCC"],
-    "activate":["DFS","DFS_visit","BFS_visit","Bellman_Ford"]
+    "activate":["DFS","DFS_visit","BFS_visit","Bellman_Ford","Dijkstra"]
   },  {
     "name":"DFS",
     "state":"selectable",
-    "deactivate":["RESET","DFS_visit","BFS_visit","Distanza","Ispeziona"],
-    "activate":["RESET","Ispeziona"]
+    "deactivate":f1,
+    "activate":f2
   },  {
     "name":"DFS_visit",
     "state":"selectable",
-    "deactivate":["RESET","DFS","BFS_visit","Distanza","Ispeziona","Bellman_Ford"],
-    "activate":["RESET","Ispeziona"]
+    "deactivate":f1,
+    "onclick":f2.concat(["SCC"])
   },  {
     "name":"SCC",
     "state":"unselectable",
-    "deactivate":["RESET","DFS","DFS_visit","Distanza","Ispeziona"],
-    "activate":["RESET","Ispeziona"]
+    "deactivate":f1,
+    "activate":["RESET"]
   },  {
     "name":"BFS_visit",
     "state":"selectable",
-    "deactivate":["RESET","DFS","DFS_visit","Distanza","Ispeziona"],
-    "activate":["RESET","Ispeziona"]
+    "deactivate":f1,
+    "onclick":f2.concat(["Distanza"])
+  }, {
+    "name":"Bellman_Ford",
+    "state":"selectable",
+    "deactivate":f1,
+    "onclick":f2.concat(["Distanza"])
+  },  {
+    "name":"Dijkstra",
+    "state":"selectable",
+    "deactivate":f1,
+    "onclick":f2.concat(["Distanza"])
   },  {
     "name":"Distanza",
     "state":"unselectable",
-    "activate":["BFS_visit"]
-  },  {
-    "name":"Trasponi",
-    "state":"selectable"
   },  {
     "name":"Ispeziona",
     "state":"selectable"
-  }, {
-    "name": "Bellman_Ford",
-    "state": "selectable",
-    "deactivate":["RESET","DFS","DFS_visit","Distanza","Ispeziona"],
-    "activate":["RESET","Ispeziona"]
+  },  {
+    "name":"Animazioni on",
+    "state":"selectable",
+    "activate":["Animazioni off","RESET"]
+  },  {
+    "name":"Animazioni off",
+    "state":"unselectable",
+    "activate":["Animazioni on","RESET"]
   }
 ]
 
-function exec(m){
+function exec(m, onclick){
   if(grosso) accresci();
+  if(onclick) onclick=JSON.stringify(onclick);
   //reset
   circle.attr("onmouseover",null).attr("onmouseleave",null).attr("onclick",null)
   ids.attr("onmouseover",null).attr("onmouseleave",null).attr("onclick",null)
   //ifelseifelseifelseif...
-  if(m == "Trasponi") trasponi();
-  if(m == "RESET") inacerbizza();
+  if(m == "Animazioni on") quantoquanto= tantoquanto;
+  else if(m == "Animazioni off") quantoquanto= 0;
+  else if(m == "Trasponi") trasponi();
+  else if(m == "RESET") inacerbizza();
   else if(m == "DFS") DFS();
-  else if(m == "DFS_visit")
-  {
-    ids.attr("onclick","{DFS_visit(Number(this.innerHTML));set_states(['SCC'],'selectable');create_list();}");
-  }
   else if(m == "SCC")
   {
     var cesto=[];
@@ -102,17 +112,13 @@ function exec(m){
     timer=0;
     DFS_visit(sorgente);
     for(var i=0; i<enne; i++)
-      if(acini[i].uva=="passa" && cesto.some(function(e){if(e==i)return i})){
+      if(acini[i].uva=="passa" && cesto.some(function(e){if(e==i)return true})){
         barattolo.push(i);
       }
     setTimeout(function(){
       trasponi()
       barattolo.forEach(function(e){avvinazza(e)});
     },quantoquanto*timer+10);
-  }
-  else if(m == "BFS_visit")
-  {
-    ids.attr("onclick","{BFS_visit(Number(this.innerHTML));set_states(['Distanza'],'selectable');create_list();}");
   }
   else if(m == "Distanza")
   {
@@ -125,10 +131,11 @@ function exec(m){
     ids.attr("onmouseleave", "destroyinfo()")
     circle.attr("onmouseleave","destroyinfo()")
   }
-  else if(m == "Bellman_Ford")
-  {
-    ids.attr("onclick", "Bellman_Ford(Number(this.innerHTML))")
-  }
+  else set_click(m,onclick);
+}
+
+function set_click(m,onclick){
+    ids.attr("onclick","{"+m+"(Number(this.innerHTML));set_states("+onclick+",'selectable');print_list();}");
 }
 
 //Variabili globali
@@ -140,7 +147,8 @@ var viticci=[]; //archi    E
 
 var piantato= false;
 var grosso= true;
-var quantoquanto= 500;
+var quantoquanto= 0;
+var tantoquanto= 500;
 var timer=0;
 
 var width = innerWidth*.98,
@@ -161,10 +169,43 @@ for(var i= 0; i<enne; i++){
   grappolo[i]= new Array(enne);
   for(var j= 0; j<enne; j++){
     if(i!==j && Math.random()*enne*enne*0.7<enne)
-      grappolo[i][j]= parseInt(Math.random()*20-10);
+      grappolo[i][j]= parseInt(Math.random()*10);
     else
       grappolo[i][j]= 0;
   }
+}
+
+function crea_acini(){
+  grappolo.forEach(function(acino,i,grappolo){
+    acini.push(
+      {
+        "id":i,
+        "uva":"acerba",
+        "padre":null,
+        "d":0,
+        "f":0,
+        "dist":Infinity
+      }
+    );
+  });
+}
+
+function crea_viticci(){
+  grappolo.forEach(function(acino,i,grappolo){
+    acino.forEach(function(viticcio,j,acino){
+      if(viticcio!=0)
+        viticci.push(
+          {
+            "source":acini[i],
+            "target":acini[j],
+            "tipo":null,
+            "u":i,
+            "v":j,
+            "peso":grappolo[i][j]
+          }
+        );
+    });
+  });
 }
 
 pianta();
@@ -204,22 +245,28 @@ svg.append("defs").selectAll("marker")
   .append("path")
     .attr("d", "M0,-5L10,0L0,5")
 
-    svg.append("defs").selectAll("marker")
-        .data(viticci)
-      .enter().append("marker")
-        .attr("id",function(d){return"w("+d.source.id+","+d.target.id+")"})
-        .attr("viewBox", "0 -10 10 10")
-        .attr("refX", -11)
-        .attr("refY", 0)
-        .attr("markerWidth", 5)
-        .attr("markerHeight", 5)
-        .attr("orient", "auto")
-      .append("text")
-        .attr("font-family","Verdana")
-        .attr("font-size",10)
-        .text(function(a){return a.peso;})
+svg.append("defs").selectAll("marker")
+    .data(viticci)
+  .enter().append("marker")
+    .attr("id",function(d){return"w("+d.source.id+","+d.target.id+")"})
+    .attr("viewBox", "0 -10 10 10")
+    .attr("refX", -11)
+    .attr("refY", 0)
+    .attr("markerWidth", 5)
+    .attr("markerHeight", 5)
+    .attr("orient", "auto")
+  .append("text")
+    .attr("font-family","Verdana")
+    .attr("font-size",10)
+    .text(function(a){return a.peso;})
 
-path= create_path(); //nel tentativo di ricaricare parzialmente
+path= svg.append("g").selectAll("path")
+  .data(viticci).enter()
+    .append("path")
+    .attr("class","viticcio")
+    .attr("id",function(d){return"("+d.source.id+","+d.target.id+")"})
+    .attr("marker-end","url(#punta)")
+    .attr("marker-start",function(d){return "url('#w("+d.source.id+","+d.target.id+")')";});
 
 circle= svg.append("g").selectAll("circle")
   .data(acini).enter()
@@ -239,58 +286,12 @@ ids= svg.append("g").selectAll("text")
     .attr("display","none")
     .text(function(d) { if(d.id<10)return '0'+d.id; return d.id })
     .call(force.drag);
-
 force.start();
 create_list();
 };
 
-function crea_acini(){
-  grappolo.forEach(function(acino,i,grappolo){
-    acini.push(
-      {
-        "id":i,
-        "uva":"acerba",
-        "padre":null,
-        "d":0,
-        "f":0,
-        "dist":Infinity
-      }
-    );
-  });
-}
-
-function crea_viticci(){
-  grappolo.forEach(function(acino,i,grappolo){
-    acino.forEach(function(viticcio,j,acino){
-      if(viticcio!=0)
-        viticci.push(
-          {
-            "source":acini[i],
-            "target":acini[j],
-            "tipo":null,
-            "u":i,
-            "v":j,
-            "peso":grappolo[i][j]
-          }
-        );
-    });
-  });
-}
-
-function create_path(){
-  return svg.append("g").selectAll("path")
-  .remove() //se funziona bene da mettere a tutti
-  .data(viticci).enter()
-    .append("path")
-    .attr("class","viticcio")
-    .attr("id",function(d){return"("+d.source.id+","+d.target.id+")"})
-    .attr("marker-end","url(#punta)")
-    .attr("marker-start",function(d){return "url('#w("+d.source.id+","+d.target.id+")')";})
-}
-
 function create_list(){
   functions= svg.append("g").selectAll("text")
-    .remove()
     .data(funzioni).enter()
     .append("text")
     .attr("x",0)
@@ -301,8 +302,13 @@ function create_list(){
     .attr("id",function(e){return e.name})
     .html(function(e){return e.name})
 
-  var temp= document.getElementsByClassName("selectable");
-  d3.selectAll(temp).attr("onclick","handle(this)");
+  d3.selectAll(document.getElementsByClassName("selectable"))
+  .attr("onclick","handle(this)");
+}
+
+function print_list(){
+  functions.remove();
+  create_list();
 }
 
 //Magic
@@ -367,19 +373,20 @@ function handle(that){
       if(e.name==that.innerHTML) //trovo la funzione cliccata
       {
         //modifica la lista
-        set_states([selected],"unselectable")//da rivedere
+        set_states([selected],"unselectable");//da rivedere
         selected= e.name;
-        set_states([selected],"selected")
         if(e.deactivate) set_states(e.deactivate,"unselectable");
+        set_states([selected],"selected");
 
-        create_list(); //la aggiorna
+        print_list(); //la aggiorna
+        timer=0;
 
-        exec(selected); //quello che deve fare
+        exec(selected, e.onclick); //quello che deve fare
 
         setTimeout(function(){
           timer=0;
           if(e.activate) set_states(e.activate,"selectable");
-          create_list(); //la aggiorna poi
+          print_list(); //la aggiorna poi
         },quantoquanto*timer+10);
 
         return e; //esco dal 'some'
@@ -491,13 +498,6 @@ function trasponi(){
 
 var T=0;
 
-function DFS()
-{
-  inacerbizza();
-  for(var i=0; i<enne; i++)
-    DFS_visit(i);
-}
-
 function DFS_visit(i){
   if(acini[i].uva!="acerba")
     return;
@@ -521,6 +521,13 @@ function DFS_visit(i){
         }
   invecchia(i)
   acini[i].f= T;
+}
+
+function DFS()
+{
+  inacerbizza();
+  for(var i=0; i<enne; i++)
+    DFS_visit(i);
 }
 
 function BFS_visit(s){
@@ -547,38 +554,58 @@ function BFS_visit(s){
   }
 }
 
-function Bellman_Ford(s){
+function relax(u,v){
+  timer++;
+  if(acini[v].dist>acini[u].dist+grappolo[u][v])
+    {//paso per (u,v)
+      tipo_viticcio(u,v,"T");
+      acini[v].dist= acini[u].dist+grappolo[u][v];
+      if(acini[v].padre) tipo_viticcio(acini[v].padre,v,"C");
+      acini[v].padre= u;
+      return true;
+    }
+  else if(acini[v].padre== u)tipo_viticcio(u,v,"T")
+  else tipo_viticcio(u,v,"C")
+  return false;
+}
+
+function Bellman_Ford(s){ //_Bowie
   var i= 0;
   var changes= true;
   inacerbizza();
   acini[s].dist=0;
   avvinazza(s);
-  while(changes==true && i<enne)
+  while(changes==true && i<=enne)
     {
       i++;
       changes= false;
       for(var e=0; e<viticci.length; e++)
         if(relax(viticci[e].u, viticci[e].v)==true)
           changes= true;
-      alert(""+i+"  "+changes)
     }
-  if(i!=enne) return true;
-  else {return false; alert("Ciclo di costo negativo.")}
+  if(!changes) return true;
+  else {alert("Ciclo di costo negativo.");return false;}
 }
 
-function relax(u,v){
-  timer++;
-  if(acini[v].dist>acini[u].dist+grappolo[u][v])
-    {
-      tipo_viticcio(u,v,"T");
-      acini[v].dist= acini[u].dist+grappolo[u][v];
-      if(acini[v].padre) tipo_viticcio(acini[v].padre,v,"F");
-      acini[v].padre= u;
-      return true;
-    }
-  else if(acini[v].padre==null) tipo_viticcio(u,v,"C");
-  else tipo_viticcio(u,v,"T")
-  return false;
+function Dijkstra(s){ //non per colpa della Pinotti
+  inacerbizza();
+  acini[s].dist=0;
+  var Q=acini;
+  var S=[]; //vertici estratti
+  var u=s;
+  while(Q.length)
+  {
+    //var u= Q.sort(function(a,b){return b.dist - a.dist;}).pop().id;  //estrae da Q il vertice con dist da S minima
+    for(var i=0; i<Q.length; i++)
+      if(Q[i].dist<Q[u].dist) u=i;
+    alert(JSON.stringify(Q[u]))
+    Q.splice(u,1);
+    alert(JSON.stringify(Q[u]))
+     S.push(u);
+    invecchia(u);
+    for(var v=0; v<enne; v++)
+      if(grappolo[u][v]!=0) relax(u,v);
+  }
 }
 
   </script>
