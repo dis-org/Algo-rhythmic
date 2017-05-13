@@ -29,14 +29,14 @@ onkeydown= function(e){
   }
 }
   //lista per svg
-var f1=["RESET","DFS","DFS_visit","BFS_visit","Distanza","Ispeziona","Bellman_Ford","Dijkstra"]
+var f1=["RESET","DFS","DFS_visit","BFS_visit","Distanza","Ispeziona","Bellman_Ford","Dijkstra","Johnson","Sorgente"]
 var f2=["RESET","Ispeziona"]
 var funzioni= [
   {
     "name":"RESET",
     "state":"unselectable",
-    "deactivate":["RESET","Distanza","SCC"],
-    "activate":["DFS","DFS_visit","BFS_visit","Bellman_Ford","Dijkstra"]
+    "deactivate":["RESET","Distanza","SCC","Sorgente"],
+    "activate":["DFS","DFS_visit","BFS_visit","Bellman_Ford","Dijkstra","Johnson"]
   },  {
     "name":"DFS",
     "state":"selectable",
@@ -74,6 +74,15 @@ var funzioni= [
     "name":"Ispeziona",
     "state":"selectable"
   },  {
+    "name":"Johnson",
+    "state":"selectable",
+    "deactivate":f1,
+    "activate":f2.concat(["Sorgente"])
+  },  {
+    "name":"Sorgente",
+    "state":"unselectable",
+    "onclick":f2.concat(["Sorgente"])
+  },  {
     "name":"Animazioni on",
     "state":"selectable",
     "activate":["Animazioni off","RESET"]
@@ -96,6 +105,7 @@ function exec(m, onclick){
   else if(m == "Trasponi") trasponi();
   else if(m == "RESET") inacerbizza();
   else if(m == "DFS") DFS();
+  else if(m == "Johnson") Johnson();
   else if(m == "SCC")
   {
     var cesto=[];
@@ -135,15 +145,24 @@ function exec(m, onclick){
 }
 
 function set_click(m,onclick){
-    ids.attr("onclick","{"+m+"(Number(this.innerHTML));set_states("+onclick+",'selectable');print_list();}");
+    ids.attr("onclick","{"+m+"(Number(this.innerHTML));set_states("+onclick+",'selectable');print_list();handle()}");
+}
+
+function Sorgente(s){
+  inacerbizza();
+  avvinazza(s);
+  acini.forEach(function(e,u){e.dist= D[s][u]});
+  exec("Distanza")
 }
 
 //Variabili globali
 
-var enne= parseInt(Math.random()*30+1); //#vertici  |V|
+var enne= parseInt(Math.random()*35+1); //#vertici  |V|
 var grappolo; //grafo   G(V,E)
 var acini=[]; //vertici    V
 var viticci=[]; //archi    E
+
+var D;
 
 var piantato= false;
 var grosso= true;
@@ -169,9 +188,9 @@ for(var i= 0; i<enne; i++){
   grappolo[i]= new Array(enne);
   for(var j= 0; j<enne; j++){
     if(i!==j && Math.random()*enne*enne*0.7<enne)
-      grappolo[i][j]= parseInt(Math.random()*10);
+      grappolo[i][j]= parseInt(Math.random()*15-5);
     else
-      grappolo[i][j]= 0;
+      grappolo[i][j]= Infinity;
   }
 }
 
@@ -193,7 +212,7 @@ function crea_acini(){
 function crea_viticci(){
   grappolo.forEach(function(acino,i,grappolo){
     acino.forEach(function(viticcio,j,acino){
-      if(viticcio!=0)
+      if(viticcio!=Infinity)
         viticci.push(
           {
             "source":acini[i],
@@ -379,7 +398,6 @@ function handle(that){
         set_states([selected],"selected");
 
         print_list(); //la aggiorna
-        timer=0;
 
         exec(selected, e.onclick); //quello che deve fare
 
@@ -504,7 +522,7 @@ function DFS_visit(i){
   invecchia(i);
   acini[i].d= T;
     for(var j=0; j<enne; j++)
-      if(grappolo[i][j]!=0)
+      if(grappolo[i][j]!=Infinity)
         {
           if(acini[j].uva=="acerba")
           {
@@ -533,6 +551,7 @@ function DFS()
 function BFS_visit(s){
   var Q=[];
   inacerbizza();
+  viticci.forEach(function(e){tipo_viticcio(e.u,e.v,"C")})
   invecchia(s);
   acini[s].dist=0;
   Q.push(s);
@@ -541,9 +560,9 @@ function BFS_visit(s){
     var u= Q.pop();
     for(var v= 0; v < enne; v++)
     {
-      if(grappolo[u][v]!=0 && acini[v].uva=="acerba")
+      if(grappolo[u][v]!=Infinity && acini[v].uva=="acerba")
       {
-        tipo_viticcio(u,v);
+        tipo_viticcio(u,v,"T");
         invecchia(v);
         acini[v].dist= acini[u].dist + 1;
         acini[v].padre= u;
@@ -573,8 +592,8 @@ function Bellman_Ford(s){ //_Bowie
   var i= 0;
   var changes= true;
   inacerbizza();
-  acini[s].dist=0;
   avvinazza(s);
+  acini[s].dist=0;
   while(changes==true && i<=enne)
     {
       i++;
@@ -589,23 +608,65 @@ function Bellman_Ford(s){ //_Bowie
 
 function Dijkstra(s){ //non per colpa della Pinotti
   inacerbizza();
+  viticci.forEach(function(e){tipo_viticcio(e.u,e.v,"C")})
+  avvinazza(s);
   acini[s].dist=0;
-  var Q=acini;
-  var S=[]; //vertici estratti
+  var Q= acini.map(function(e){return e.id;});
   var u=s;
   while(Q.length)
   {
-    //var u= Q.sort(function(a,b){return b.dist - a.dist;}).pop().id;  //estrae da Q il vertice con dist da S minima
-    for(var i=0; i<Q.length; i++)
-      if(Q[i].dist<Q[u].dist) u=i;
-    alert(JSON.stringify(Q[u]))
-    Q.splice(u,1);
-    alert(JSON.stringify(Q[u]))
-     S.push(u);
-    invecchia(u);
-    for(var v=0; v<enne; v++)
-      if(grappolo[u][v]!=0) relax(u,v);
+    u= Q.sort(function(p,q){return acini[q].dist - acini[p].dist}).pop();
+    if(acini[u].dist<0) {alert("Dijkstra non funziona con archi di peso negativo."); return;}
+    if(acini[u].dist!=Infinity)
+     Q.forEach(function(v){
+      if(grappolo[u][v]!=Infinity)
+        relax(u,v);
+      });
   }
+}
+
+function Johnson(){
+  var ace=[];
+  D=[]; P=[];
+  //aggunge un nodo sorgente connesso a tutti i nodi con archi di peso 0
+  grappolo.push(grappolo.map(function(e){return 0;}));
+  enne++;
+  grappolo.forEach(function(e){e.push(Infinity)})
+  pianta(); accresci();
+  
+  if(!Bellman_Ford(enne-1)) 
+  {
+    grappolo.forEach(function(e){e.pop();});
+    enne--;
+    grappolo.pop();
+    pianta(); accresci();
+    return false;
+  }
+  ace= acini.map(function(e){return e.dist})
+
+  setTimeout(function(){//riga da ignorare (sicronizzazione)
+
+  grappolo.forEach(function(e){e.pop();});
+  enne--;
+  grappolo.pop();
+  pianta(); accresci();
+
+  viticci.forEach(function(e){
+    grappolo[e.u][e.v]+= ace[e.u] - ace[e.v];
+  })
+
+  acini.forEach(function(a,u){
+    Dijkstra(u);
+    D.push(acini.map(function(a,v){return acini[v].dist + ace[v] - ace[u];}));
+    P.push(acini.map(function(a,v){return acini[v].padre;}));
+  });
+
+  },quantoquanto*timer+10);//riga da ignorare (sicronizzazione)
+}
+
+function SSSPk(k){ //k è il numero massimo di archi
+  D=[]; P=[];
+  
 }
 
   </script>
