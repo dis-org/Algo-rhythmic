@@ -29,14 +29,15 @@ onkeydown= function(e){
   }
 }
   //lista per svg
-var f1=["RESET","DFS","DFS_visit","BFS_visit","Distanza","Ispeziona","Bellman_Ford","Dijkstra","Johnson","Sorgente"]
+var f1=["RESET","DFS","DFS_visit","BFS_visit","Distanza","Ispeziona","Bellman_Ford",
+        "Dijkstra","Johnson","Sorgente","SSSP_m","Floyd_Warshall"]
 var f2=["RESET","Ispeziona"]
 var funzioni= [
   {
     "name":"RESET",
     "state":"unselectable",
     "deactivate":["RESET","Distanza","SCC","Sorgente"],
-    "activate":["DFS","DFS_visit","BFS_visit","Bellman_Ford","Dijkstra","Johnson"]
+    "activate":["DFS","DFS_visit","BFS_visit","Bellman_Ford","Dijkstra","Johnson","SSSP_m","Floyd_Warshall"]
   },  {
     "name":"DFS",
     "state":"selectable",
@@ -68,13 +69,20 @@ var funzioni= [
     "deactivate":f1,
     "onclick":f2.concat(["Distanza"])
   },  {
+    "name":"SSSP_m",
+    "state":"selectable",
+    "deactivate":f1,
+    "onclick":f2.concat(["Distanza"])
+  },  {
     "name":"Distanza",
     "state":"unselectable",
   },  {
-    "name":"Ispeziona",
-    "state":"selectable"
-  },  {
     "name":"Johnson",
+    "state":"selectable",
+    "deactivate":f1,
+    "activate":f2.concat(["Sorgente"])
+  },  {
+    "name":"Floyd_Warshall",
     "state":"selectable",
     "deactivate":f1,
     "activate":f2.concat(["Sorgente"])
@@ -90,6 +98,9 @@ var funzioni= [
     "name":"Animazioni off",
     "state":"unselectable",
     "activate":["Animazioni on","RESET"]
+  },  {
+    "name":"Ispeziona",
+    "state":"selectable"
   }
 ]
 
@@ -102,34 +113,11 @@ function exec(m, onclick){
   //ifelseifelseifelseif...
   if(m == "Animazioni on") quantoquanto= tantoquanto;
   else if(m == "Animazioni off") quantoquanto= 0;
-  else if(m == "Trasponi") trasponi();
   else if(m == "RESET") inacerbizza();
   else if(m == "DFS") DFS();
   else if(m == "Johnson") Johnson();
-  else if(m == "SCC")
-  {
-    var cesto=[];
-    var barattolo=[];
-    var sorgente;
-    for(var i=0; i<enne; i++)
-      if(acini[i].uva=="passa")
-      {
-        if(acini[i].padre==null)
-          sorgente=i;
-        cesto.push(i);
-      }
-    trasponi();
-    timer=0;
-    DFS_visit(sorgente);
-    for(var i=0; i<enne; i++)
-      if(acini[i].uva=="passa" && cesto.some(function(e){if(e==i)return true})){
-        barattolo.push(i);
-      }
-    setTimeout(function(){
-      trasponi()
-      barattolo.forEach(function(e){avvinazza(e)});
-    },quantoquanto*timer+10);
-  }
+  else if(m == "Floyd_Warshall") Floyd_Warshall();
+  else if(m == "SCC") SCC();
   else if(m == "Distanza")
   {
     ids.attr("onmouseover","showdistance(acini[Number(this.innerHTML)])")
@@ -145,10 +133,10 @@ function exec(m, onclick){
 }
 
 function set_click(m,onclick){
-    ids.attr("onclick","{"+m+"(Number(this.innerHTML));set_states("+onclick+",'selectable');print_list();handle()}");
+    ids.attr("onclick","{"+m+"(Number(this.innerHTML));set_states("+onclick+",'selectable');print_list();}");
 }
 
-function Sorgente(s){
+function Sorgente(s){ //Da riscrivere (D)
   inacerbizza();
   avvinazza(s);
   acini.forEach(function(e,u){e.dist= D[s][u]});
@@ -167,7 +155,7 @@ var D;
 var piantato= false;
 var grosso= true;
 var quantoquanto= 0;
-var tantoquanto= 500;
+var tantoquanto= 50;
 var timer=0;
 
 var width = innerWidth*.98,
@@ -344,11 +332,6 @@ function transform(d) {
   return "translate(" + d.x + "," + d.y + ")";
 }
 
-function place(d) {
-
-  return "translate(" + d.x + "," + d.y + ")";
-}
-
 function tock() {
   path.attr("d", linkArc);
   circle.attr("transform", transform);
@@ -375,7 +358,10 @@ function showdistance(acino) {
     .attr("fill","black")
     .attr("font-family","Verdana")
     .attr("font-size",25)
-    .text(acino.dist);
+    .text(function(){
+      if (acino.dist==Infinity) return "∞";
+      else return acino.dist }
+    );
 }
 
 function destroyinfo() {
@@ -541,6 +527,30 @@ function DFS_visit(i){
   acini[i].f= T;
 }
 
+function SCC(){
+  var cesto=[];
+  var barattolo=[];
+  var sorgente;
+  for(var i=0; i<enne; i++)
+    if(acini[i].uva=="passa")
+    {
+      if(acini[i].padre==null)
+        sorgente=i;
+      cesto.push(i);
+    }
+  trasponi();
+  timer=0;
+  DFS_visit(sorgente);
+  for(var i=0; i<enne; i++)
+    if(acini[i].uva=="passa" && cesto.some(function(e){if(e==i)return true})){
+      barattolo.push(i);
+    }
+  setTimeout(function(){
+    trasponi()
+    barattolo.forEach(function(e){avvinazza(e)});
+  },quantoquanto*timer+10);
+}
+
 function DFS()
 {
   inacerbizza();
@@ -625,6 +635,22 @@ function Dijkstra(s){ //non per colpa della Pinotti
   }
 }
 
+function SSSP_m(s){  //necessita di una chiamata di Bellman_Ford per verificare l'assenza di cicli neg.
+  D=[]; P=[];
+  inacerbizza();
+  avvinazza(s);
+  acini[s].dist=0;
+  D.push(acini.map(function(a){ return a.dist; }))
+  P.push(acini.map(function(a){ return a.padre; }))
+  for(var l=1;l<enne;l++){
+    D.push(acini.map(function(a,v){
+      return D[l-1].map(function(d,i){if(i==v) return d; else return d + grappolo[i][v]})
+      .sort(function(p,q){return p - q})[0];
+    }))
+  }
+  acini.forEach(function(a,i){a.dist=D[enne-1][i]})
+}
+
 function Johnson(){
   var ace=[];
   D=[]; P=[];
@@ -633,8 +659,8 @@ function Johnson(){
   enne++;
   grappolo.forEach(function(e){e.push(Infinity)})
   pianta(); accresci();
-  
-  if(!Bellman_Ford(enne-1)) 
+
+  if(!Bellman_Ford(enne-1))
   {
     grappolo.forEach(function(e){e.pop();});
     enne--;
@@ -644,7 +670,9 @@ function Johnson(){
   }
   ace= acini.map(function(e){return e.dist})
 
+  var temp;
   setTimeout(function(){//riga da ignorare (sicronizzazione)
+  temp= timer; timer=0;
 
   grappolo.forEach(function(e){e.pop();});
   enne--;
@@ -661,13 +689,20 @@ function Johnson(){
     P.push(acini.map(function(a,v){return acini[v].padre;}));
   });
 
-  },quantoquanto*timer+10);//riga da ignorare (sicronizzazione)
+},quantoquanto*timer+10);//riga da ignorare (sicronizzazione, da rivedere)
+
+timer+= temp;
 }
 
-function SSSPk(k){ //k è il numero massimo di archi
-  D=[]; P=[];
-  
+function /*Pink*/Floyd_Warshall() {
+  inacerbizza();
+  D=grappolo;
+  for(var i=0; i<enne; i++) D[i][i]=0;
+  for(var k=1; k<enne; k++)
+    for(var i=0; i<enne; i++)
+      for(var j=0; j<enne; j++)
+        if(D[i][j]>D[i][k]+D[k][j])
+           D[i][j]=D[i][k]+D[k][j];
 }
-
   </script>
 </body>
