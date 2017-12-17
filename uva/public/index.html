@@ -270,6 +270,7 @@ weights= svg.append("defs").selectAll("marker")
   .append("text")
     .attr("font-family","Verdana")
     .attr("font-size",10)
+    .attr("display","none")					      
     .text(function(a){return a.peso;})
 
 path= svg.append("g").selectAll("path")
