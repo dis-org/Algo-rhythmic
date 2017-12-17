@@ -30,13 +30,13 @@ onkeydown= function(e){
 }
   //lista per svg
 var f1=["RESET","DFS","DFS_visit","BFS_visit","Distanza","Ispeziona","Bellman_Ford",
-        "Dijkstra","Johnson","Sorgente","SSSP_m","Floyd_Warshall"]
+        "Dijkstra","Johnson","Seleziona sorgente","SSSP_m","Floyd_Warshall"]
 var f2=["RESET","Ispeziona"]
 var funzioni= [
   {
     "name":"RESET",
     "state":"unselectable",
-    "deactivate":["RESET","Distanza","SCC","Sorgente"],
+    "deactivate":["RESET","Distanza","SCC","Seleziona sorgente"],
     "activate":["DFS","DFS_visit","BFS_visit","Bellman_Ford","Dijkstra","Johnson","SSSP_m","Floyd_Warshall"]
   },  {
     "name":"DFS",
@@ -80,16 +80,16 @@ var funzioni= [
     "name":"Johnson",
     "state":"selectable",
     "deactivate":f1,
-    "activate":f2.concat(["Sorgente"])
+    "activate":f2.concat(["Seleziona sorgente"])
   },  {
     "name":"Floyd_Warshall",
     "state":"selectable",
     "deactivate":f1,
-    "activate":f2.concat(["Sorgente"])
+    "activate":f2.concat(["Seleziona sorgente"])
   },  {
-    "name":"Sorgente",
+    "name":"Seleziona sorgente",
     "state":"unselectable",
-    "onclick":f2.concat(["Sorgente"])
+    "onclick":f2.concat(["Seleziona sorgente"])
   },  {
     "name":"Animazioni on",
     "state":"selectable",
@@ -123,6 +123,11 @@ function exec(m, onclick){
     ids.attr("onmouseover","showdistance(acini[Number(this.innerHTML)])")
     ids.attr("onmouseleave", "destroyinfo()")
   }
+  else if(m == "Seleziona sorgente")
+  {
+    set_click("Seleziona",onclick);
+    timer=0;
+  }
   else if(m == "Ispeziona")
   {
     ids.attr("onmouseover","showinfo(acini[Number(this.innerHTML)])")
@@ -136,11 +141,11 @@ function set_click(m,onclick){
     ids.attr("onclick","{"+m+"(Number(this.innerHTML));set_states("+onclick+",'selectable');print_list();}");
 }
 
-function Sorgente(s){ //Da riscrivere (D)
+function Seleziona(s){
   inacerbizza();
   avvinazza(s);
-  acini.forEach(function(e,u){e.dist= D[s][u]});
-  exec("Distanza")
+  ids.attr("onmouseover","showdistancefrom("+s+",acini[Number(this.innerHTML)])")
+  ids.attr("onmouseleave", "destroyinfo()")
 }
 
 //Variabili globali
@@ -155,7 +160,7 @@ var D;
 var piantato= false;
 var grosso= true;
 var quantoquanto= 0;
-var tantoquanto= 50;
+var tantoquanto= 100;
 var timer=0;
 
 var width = innerWidth*.98,
@@ -166,7 +171,7 @@ var svg = d3.select("body #essevvuggi")
     .attr("height", height);
 
 var force; // d3.force per fisica
-var path, circle, ids, functions; //classi svg
+var path, circle, ids, weights, functions; //classi svg
 
 //Generazione grappolo
 
@@ -200,7 +205,7 @@ function crea_acini(){
 function crea_viticci(){
   grappolo.forEach(function(acino,i,grappolo){
     acino.forEach(function(viticcio,j,acino){
-      if(viticcio!=Infinity)
+      if(viticcio!=Infinity && i!=j)
         viticci.push(
           {
             "source":acini[i],
@@ -252,7 +257,7 @@ svg.append("defs").selectAll("marker")
   .append("path")
     .attr("d", "M0,-5L10,0L0,5")
 
-svg.append("defs").selectAll("marker")
+weights= svg.append("defs").selectAll("marker")
     .data(viticci)
   .enter().append("marker")
     .attr("id",function(d){return"w("+d.source.id+","+d.target.id+")"})
@@ -364,6 +369,22 @@ function showdistance(acino) {
     );
 }
 
+function showdistancefrom(s,acino) {
+  var x= acino.x+20;
+  var y= acino.y+15;
+  svg.append("text")
+    .attr("class","infobox")
+    .attr("x",x)
+    .attr("y",y)
+    .attr("fill","black")
+    .attr("font-family","Verdana")
+    .attr("font-size",25)
+    .text(function(){
+      if (D[s][acino.id]==Infinity) return "∞";
+      else return D[s][acino.id] }
+    );
+}
+
 function destroyinfo() {
   var todelete=document.getElementsByClassName('infobox');
   for(var i=0; i<todelete.length; i++)
@@ -395,7 +416,7 @@ function handle(that){
 
         return e; //esco dal 'some'
       }
-     })==false) alert(that.innerHTML+"non presente"); //errore
+     })==false) alert(that.innerHTML+" non in lista"); //errore
 }
 
 function set_states(list,state) {
@@ -443,7 +464,9 @@ function acerba(e){
 function avvinazza(i){
   circle[0].some(function(a){
     if(a.id==i){
-      d3.select(a).attr("class","vino");
+      setTimeout(function(){
+        d3.select(a).attr("class","vino");
+      },timer*quantoquanto);
       return i;
     }
   });
@@ -477,12 +500,14 @@ function accresci(){
   if(grosso){
   circle.attr("r",15);
   ids.attr("display","inline");
+  weights.attr("display","inline");				  
   force.linkDistance(100).charge(-670).start()
   grosso= false;
   }
   else{
   circle.attr("r",35);
   ids.attr("display","none");
+  weights.attr("display","none");				  
   force.linkDistance(20).charge(-200).start()
   grosso= true;
   }
@@ -598,7 +623,7 @@ function relax(u,v){
   return false;
 }
 
-function Bellman_Ford(s){ //_Bowie
+function Bellman_Ford/*Bowie*/(s){
   var i= 0;
   var changes= true;
   inacerbizza();
