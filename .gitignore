@@ -1,0 +1,23 @@
+/*
+!*.md
+!.gitignore
+
+# roba in c
+!*.c
+!*.h
+!makefile
+
+# grappolo (js)
+!uva/
+uva/*
+!*.js
+!*.json
+!*.ico
+!Dockerfile
+!.dockerignore
+
+!uva/public/
+uva/public/*
+!*.html
+!*.css
+!*.ico

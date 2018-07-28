@@ -1,0 +1,20 @@
+{
+  "name": "grappolo",
+  "version": "1.0.0",
+  "description": "graph-theory-infused grapes",
+  "contibutors": [
+      "Arianna Masciolini (https://gitlab.com/harisont)",
+      "Claudio Pannacci <pannacciclaudio@gmail.com> (https://gitlab.com/kappanneo)"
+  ],
+  "main": "server.js",
+  "scripts": {
+    "start": "nodejs server.js"
+  },
+  "dependencies": {
+      "http":"latest",
+      "connect":"latest",
+      "serve-favicon":"latest",
+      "serve-static":"latest",
+      "path":"latest"
+  }
+}
