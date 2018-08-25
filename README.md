@@ -23,10 +23,9 @@ Implementation of some studied algorithms, half in C half in JavaScript.
 ## JavaScript
 
 ### Directed Graphs
-- DFS-visit
-- BFS-visit
-- SCC
 - DFS
+- BFS
+- SCC
 - Bellman-Ford
 - Dijkstra
 - SSSP

@@ -29,7 +29,7 @@ onkeydown= function(e){
   }
 }
   //lista per svg
-var f1=["RESET","DFS","DFS_visit","BFS_visit","Distanza","Ispeziona","Bellman_Ford",
+var f1=["RESET","DFS","DFS_visit","BFS","Distanza","Ispeziona","Bellman_Ford",
         "Dijkstra","Johnson","Seleziona sorgente","SSSP_m","Floyd_Warshall"]
 var f2=["RESET","Ispeziona"]
 var funzioni= [
@@ -37,7 +37,7 @@ var funzioni= [
     "name":"RESET",
     "state":"unselectable",
     "deactivate":["RESET","Distanza","SCC","Seleziona sorgente"],
-    "activate":["DFS","DFS_visit","BFS_visit","Bellman_Ford","Dijkstra","Johnson","SSSP_m","Floyd_Warshall"]
+    "activate":["DFS","DFS_visit","BFS","Bellman_Ford","Dijkstra","Johnson","SSSP_m","Floyd_Warshall"]
   },  {
     "name":"DFS",
     "state":"selectable",
@@ -54,7 +54,7 @@ var funzioni= [
     "deactivate":f1,
     "activate":["RESET"]
   },  {
-    "name":"BFS_visit",
+    "name":"BFS",
     "state":"selectable",
     "deactivate":f1,
     "onclick":f2.concat(["Distanza"])
@@ -584,7 +584,7 @@ function DFS()
     DFS_visit(i);
 }
 
-function BFS_visit(s){
+function BFS(s){
   var Q=[];
   inacerbizza();
   viticci.forEach(function(e){tipo_viticcio(e.u,e.v,"C")})
